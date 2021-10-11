@@ -1,5 +1,10 @@
 const SparqlClient = require('sparql-http-client')
 const axios = require('axios');
+const WBK = require('wikibase-sdk')
+const wdk = WBK({
+  instance: 'https://www.wikidata.org',
+  sparqlEndpoint: 'https://query.wikidata.org/sparql'
+})
 const endpointUrl = 'https://query.wikidata.org/sparql'
 const qr=(id,lang)=>{
   return`
@@ -84,8 +89,47 @@ const request=async  (word,lang)=>  {
 };
 
 const r=ex;
+
+const formatWord=(w)=>{
+let first="";
+let other="";
+let array=w.split(" ");
+let out="";
+array.forEach(element => {
+  first=element[0];
+  first=
+  other=element.slice(1,element.length);
+  out=out+first+other+" ";
+});
+console.log(out)
+return out;
+}
+
+const formatLang=(l)=>{
+  let out=l.toLowerCase();
+  out=l[0]+l[1];
+  console.log(out);
+  return out;
+}
+
+
+const f=(word,lang)=>{
+  word=formatWord(word);
+  lang=formatLang(lang);
+  const url = wdk.searchEntities({
+    search: word,
+    format: 'json',
+    language: lang,
+    limit: 30
+  })
+
+  axios.get(url).then((response)=>{
+      console.log(response.data);
+  })
+}
 module.exports={
     searchCategory:r,
+    research:f
 
 }
 

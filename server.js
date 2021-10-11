@@ -48,8 +48,8 @@ app.get("/all",(req,res)=>{
     //babelMethods.synsets(res,word,lang);
     //conceptMethods.assertions(res,word,lang);
     //dbNaryMethods.example(res,word,lang);
-    dbPediaMethods.query(res,word,lang);
-    //wikiMethods.searchCategory(res,word,lang);
+    //dbPediaMethods.query(res,word,lang);
+    wikiMethods.research(word,lang);
 });
 
 app.get("/babelNet",(req,res)=>{

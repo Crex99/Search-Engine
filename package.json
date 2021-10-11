@@ -19,6 +19,7 @@
     "helmet": "^4.6.0",
     "node-fetch": "^3.0.0",
     "sparql-http-client": "^2.4.0",
-    "sparqljs": "^3.5.1"
+    "sparqljs": "^3.5.1",
+    "wikibase-sdk": "^7.13.1"
   }
 }
