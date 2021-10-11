@@ -39,6 +39,7 @@ stream.on('data', row => {
 })
 
 stream.on('error', err => {
+  console.log("DBNARY");
 console.error(err)
 })
     

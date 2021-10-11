@@ -62,6 +62,7 @@ const stream = await client.query.select(query)
   //res.send(string);
 })
 stream.on('error', err => {
+  console.log("WIKIDATA")
   console.error(err)
 })
 }

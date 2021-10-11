@@ -49,6 +49,7 @@ const request0=async  (r,word,lang) => {
     });
     //r.status(201).send({message:""+string});
   } catch (error) {
+    console.log("CONCEPTNET")
     console.log(error);
   }
 };

@@ -83,6 +83,7 @@ const request0=async  (a,i,b)=>  {
     }
 
   } catch (error) {
+    console.log("BABELNET")
     console.log(error);
     
   }

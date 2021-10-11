@@ -14,13 +14,15 @@ PREFIX dbpedia2: <http://dbpedia.org/property/>
 PREFIX dbpedia: <http://dbpedia.org/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-SELECT  ?type 
+SELECT   ?item ?label
 WHERE
      {
         ?item rdfs:label "`+word+`" @`+lang+`.
-        ?item rdf:type  ?type.
-        
-     }`
+        OPTIONAL { ?item rdfs:comment ?label }
+        FILTER ( LANG ( ?label ) = '`+lang+`' )
+     }LIMIT 20
+     
+     `
 }
 
 //formatto la stringa in input
@@ -42,16 +44,19 @@ const client = new SparqlClient({ endpointUrl })
 stream.on('data', row => {
     Object.entries(row).forEach(([key, value]) => {
     let current=`${value.value}`;
+    console.log("\nDESCRIZIONE\n")
+    console.log(current);
     current=current.split("/");
     current=current[current.length-1]+"\n";
-    console.log("DBPEDIA")
-    console.log(current);
+    //console.log("DBPEDIA")
+    //console.log(current);
   })
   
 })
 //res.status(200).send({message:string});
  
 stream.on('error', err => {
+  console.log("DBPEDIA")
   console.error(err)
 })
 }
