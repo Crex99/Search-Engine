@@ -45,11 +45,11 @@ app.get("/",(req,res)=>{
 app.get("/all",(req,res)=>{
     const word=req.query.word;
     const lang=req.query.lang;
-    //babelMethods.synsets(res,word,lang);
-    //conceptMethods.assertions(res,word,lang);
-    //dbNaryMethods.example(res,word,lang);
-    //dbPediaMethods.query(res,word,lang);
-    wikiMethods.research(word,lang);
+    babelMethods.synsets(res,word,lang);
+    conceptMethods.assertions(res,word,lang);
+    dbNaryMethods.example(res,word,lang);
+    dbPediaMethods.query(res,word,lang);
+    wikiMethods.searchByName(res,word,lang);
 });
 
 app.get("/babelNet",(req,res)=>{

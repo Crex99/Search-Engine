@@ -96,24 +96,41 @@ let other="";
 let array=w.split(" ");
 let out="";
 array.forEach(element => {
-  first=element[0];
-  first=
+  first=element[0].toUpperCase();
   other=element.slice(1,element.length);
   out=out+first+other+" ";
 });
-console.log(out)
 return out;
 }
 
 const formatLang=(l)=>{
   let out=l.toLowerCase();
   out=l[0]+l[1];
-  console.log(out);
   return out;
 }
 
+const f1=(langs)=>{
+  let datas=['Q317521'];
+  langs=['en'];
+  const url = wdk.getEntities({
+    ids: datas,
+    languages: langs, // returns all languages if not specified
+    //props: [ 'info', 'claims' ], // returns all data if not specified
+    format: 'json', // defaults to json
+    redirections: false // defaults to true
+  })
+  axios.get(url).then((response)=>{
+    datas.forEach(data => {
+      langs.forEach(lang => {
+        //console.log(lang)
+      console.log(response.data.entities[data].descriptions[lang].value)
+    });
+  });
+  })
+}
 
-const f=(word,lang)=>{
+
+const f=(res,word,lang)=>{
   word=formatWord(word);
   lang=formatLang(lang);
   const url = wdk.searchEntities({
@@ -124,12 +141,21 @@ const f=(word,lang)=>{
   })
 
   axios.get(url).then((response)=>{
-      console.log(response.data);
+      const wikidata_resposne=response.data;
+      const search_items=wikidata_resposne.search.map((item)=>{
+        return {
+          id:item.id,
+          label:item.label,
+          description:item.description
+        }
+      })
+      console.log("WIKIDATA");
+      console.log(search_items);
   })
 }
 module.exports={
     searchCategory:r,
-    research:f
-
+    searchByName:f,
+    searchById:f1
 }
 
