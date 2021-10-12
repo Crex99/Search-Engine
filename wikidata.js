@@ -109,8 +109,8 @@ const formatLang=(l)=>{
   return out;
 }
 
-const f1=(langs)=>{
-  let datas=['Q317521'];
+const f1=(datas,langs)=>{
+  datas=['Q317521'];
   langs=['en'];
   const url = wdk.getEntities({
     ids: datas,
