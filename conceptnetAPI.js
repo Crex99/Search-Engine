@@ -1,5 +1,5 @@
 const axios = require('axios');
-
+const functions=require("./commonFeauters")
 
 
 //prende tutti gli edge di una data parola word in input nella lingua lang
@@ -22,20 +22,11 @@ const request=async  (r) => {
   }
 };
 
-//formatto la stringa per cercarla nel dataset
-const format=(w)=>{
-  return w.toLowerCase();
-}
-
-const formatL=(w)=>{
-  return w.slice(0,w.length-1);
-}
-
 //prende tutte le asserzioni della parola word nella lingua lang
-const request0=async  (r,word,lang) => {
-  word=format(word);
-  lang=formatL(lang);
-  const url_conceptnet="https://api.conceptnet.io/query?node=/c/"+lang+"/"+word+"&other=/c/"+lang;
+const request0=async  (r,word,lang,sensitive) => {
+  let w=functions.formatWordConcept(word);
+  lang=functions.formatLang2low(lang);
+  const url_conceptnet="https://api.conceptnet.io/query?node=/c/"+lang+"/"+w+"&other=/c/"+lang;
   try {
     const response = await axios.get(url_conceptnet);
     let out=response.data.edges;
@@ -43,8 +34,10 @@ const request0=async  (r,word,lang) => {
     out.forEach(element => {
       console.log("CONCEPTNET")
       string=string+element.rel.label+"\n"+element.start.label+"\n"+element.surfaceText+"\n";
-      console.log(element.rel.label)
-      console.log(element.start.label)
+      if(functions.control(word,sensitive,element.start.label)==true){
+        console.log(element.rel.label)
+        console.log(element.start.label)
+      }
       //console.log(element.surfaceText)
     });
     //r.status(201).send({message:""+string});

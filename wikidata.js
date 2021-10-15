@@ -1,30 +1,11 @@
 const axios = require('axios');
-const controller=require("./commonFeauters")
+const functions=require("./commonFeauters")
 const WBK = require('wikibase-sdk')
 const wdk = WBK({
   instance: 'https://www.wikidata.org',
   sparqlEndpoint: 'https://query.wikidata.org/sparql'
 })
 const endpointUrl = 'https://query.wikidata.org/sparql'
-const formatWord=(w)=>{
-let first="";
-let other="";
-let array=w.split(" ");
-let out="";
-array.forEach(element => {
-  first=element[0].toUpperCase();
-  other=element.slice(1,element.length);
-  out=out+first+other+" ";
-});
-return out;
-}
-
-const formatLang=(l)=>{
-  let out=l.toLowerCase();
-  out=l[0]+l[1];
-  return out;
-}
-
 const f1=(datas,langs)=>{
   datas=['Q317521'];
   langs=['en'];
@@ -47,8 +28,8 @@ const f1=(datas,langs)=>{
 
 
 const f=(res,word,lang,sensitive)=>{
-  word=formatWord(word);
-  lang=formatLang(lang);
+  //word=formatWord(word);
+  lang=functions.formatLang2low(lang);
   const url = wdk.searchEntities({
     search: word,
     format: 'json',
@@ -67,11 +48,10 @@ const f=(res,word,lang,sensitive)=>{
       })
 
       console.log("WIKIDATA");
-      let result="";
+      
       search_items.forEach(element => {
-        result=controller.control(word,sensitive,element.label)
-        if(result==true){
-          console.log("result",result);
+        
+        if(controller.control(word,sensitive,element.label)){
           console.log(element);
         }
       });

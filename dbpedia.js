@@ -1,46 +1,41 @@
 const SparqlClient = require("sparql-http-client")
+const functions=require("./commonFeauters")
 const endpointUrl = 'https://dbpedia.org/sparql'
-const qr =(word,lang)=>{
+const qr =(word,lang,sensitive)=>{
 //inserire qui la SPARQLE QUERY
-return` 
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX : <http://dbpedia.org/resource/>
-PREFIX dbpedia2: <http://dbpedia.org/property/>
-PREFIX dbpedia: <http://dbpedia.org/>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
-SELECT    ?label
-WHERE
-     {
-        ?item rdfs:label "`+word+`" @`+lang+`.
-        OPTIONAL { ?item dbo:abstract ?label }
-        FILTER ( LANG ( ?label ) = '`+lang+`' )
-     }LIMIT 20
-     `
+if(sensitive==true){
+  return ` SELECT   ?word ?label
+  WHERE
+       {
+          ?item rdfs:label  ?word.
+          OPTIONAL { ?item dbo:abstract ?label }
+          FILTER ( LANG ( ?label ) ="`+lang+`" )
+          FILTER ( LANG ( ?word ) ="`+lang+`" )
+          FILTER(lcase(str(?word)) = "`+word.toLowerCase()+`")
+       }LIMIT 20` 
+}else{
+  return` 
+  SELECT    ?label
+  WHERE
+       {
+          ?item rdfs:label "`+word+`" @`+lang+`.
+          OPTIONAL { ?item dbo:abstract ?label }
+          FILTER ( LANG ( ?label ) = '`+lang+`' )
+       }LIMIT 20
+       `
 }
 
-//formatto la stringa in input
-const format=(w)=>{
-  let first=w.substring(1,w.lenth-1);
-  first=first.toUpperCase();
-  let other=w.substring(1);
-  other=other.toLowerCase();
-  return first+other;
 }
 
 const client = new SparqlClient({ endpointUrl })
- async function ex(res,w,lang){
-
-    const word=format(w);
+ async function ex(res,w,lang,sensitive){
+  if(sensitive==false){w=functions.formatWord(w);}
+    lang=functions.formatLang2low(lang);
     let string="";
-    const query=qr(word,lang.slice(0,lang.length-1));
+    const query=qr(w,lang,sensitive);
     const stream=await client.query.select(query)
-stream.on('data', row => {
+  stream.on('data', row => {
     Object.entries(row).forEach(([key, value]) => {
     let current=`${value.value}`;
     console.log("\nDBPEDIA\n")

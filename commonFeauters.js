@@ -2,24 +2,44 @@
 
 const f=(searchedWord,sensitive,scoveredWord)=>{
     if(sensitive==true){
-        console.log(searchedWord);
-        console.log(scoveredWord);
-        let result=searchedWord===scoveredWord;
-        console.log("result",result)
-        if(searchedWord===scoveredWord){
-            console.log("true");
+        if(scoveredWord.includes(searchedWord)){
             return true;
         }else{
-            console.log("false");
             return false;
         }
     }else{
-        console.log("true")
         return true;
     }
 }
 
+const f1=(w)=>{
+    let array=w.split(" ");
+    return array.map((element)=>{
+        return element[0].toUpperCase()+element.slice(1,element.length);
+    }).join(" ");
+    }
+
+    const f2=(l)=>{
+        let out=l.toLowerCase();
+        out=l[0]+l[1];
+        return out;
+      }
+
+      const f3=(w)=>{
+          return w.toLowerCase();
+      }
+
+      const f4=(l)=>{
+        let out=l.toUpperCase();
+        out=l[0]+l[1];
+        return out;
+      }
+
 
 module.exports={
     control:f,
+    formatWord:f1,
+    formatLang2low:f2,
+    formatLang2High:f4,
+    formatWordConcept:f3
 }
