@@ -55,10 +55,11 @@ app.get("/all",(req,res)=>{
      * imgs is a parameter that specify if we want also images 
      */
     //babelMethods.senses(res,word,lang,sensitive);
-    conceptMethods.assertions(res,word,lang,sensitive);
+    //conceptMethods.assertions(res,word,lang,sensitive);
     //dbNaryMethods.example(res,word,lang,sensitive);
     //dbPediaMethods.query(res,word,lang,sensitive);
-    //wikiMethods.searchByName(res,word,lang,sensitive);
+    wikiMethods.searchByName(res,word,lang,sensitive);
+    //wikiMethods.searchById(res,word,lang);
 });
 
 app.get("/babelNet",(req,res)=>{
