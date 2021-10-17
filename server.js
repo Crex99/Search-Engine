@@ -46,6 +46,8 @@ app.get("/all",(req,res)=>{
 
     let sensitive=false;
     let imgs=false;
+    const relation=req.query.relation;
+    const pos=req.query.pos;
     const word=req.query.word;
     const lang=req.query.lang;
     sensitive=Boolean(req.query.sensitive);
@@ -53,13 +55,15 @@ app.get("/all",(req,res)=>{
     /**
      * sensitive is a parameter that specify if we want a case sensitive research or not
      * imgs is a parameter that specify if we want also images 
+     * pos and relation are parameters only for babelnet, pos indicates if we want a verb, a noun , a pronoun
+     * relation indicates if we want a HYPERNYM, HYPONYM , SYNOYM ot other
      */
     //babelMethods.senses(res,word,lang,sensitive);
+    babelMethods.senses_pos(res,word,lang,pos,relation)
     //conceptMethods.assertions(res,word,lang,sensitive);
     //dbNaryMethods.example(res,word,lang,sensitive);
     //dbPediaMethods.query(res,word,lang,sensitive);
-    wikiMethods.searchByName(res,word,lang,sensitive);
-    //wikiMethods.searchById(res,word,lang);
+    //wikiMethods.searchByName(res,word,lang,sensitive);
 });
 
 app.get("/babelNet",(req,res)=>{

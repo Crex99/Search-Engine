@@ -63,14 +63,16 @@ const request=async  (r,lemma,lang)=>  {
 
 
 //cerca il synset con identificativo id e ritorna una frase che lo descrive se ci sono
-const request0=async  (a,i,b)=>  {
-  if(i<a.length){
+const request0=async  (array,i,b)=>  {
+  if(i==array.length){
+    return;
+  }
 
-  const url="https://babelnet.io/v6/getSynset?id="+a[i].id+"&targetLang="+b+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
+  const url="https://babelnet.io/v6/getSynset?id="+array[i].target+"&targetLang="+b+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
   try {
     const response = await axios.get(url);
     let out=response.data;
-    console.log(out);
+    console.log("description",out.glosses[0].gloss);
     //b.status(201).send({message:""+out});
     /*let current =out.glosses[0];
     if(current!=undefined){
@@ -83,26 +85,24 @@ const request0=async  (a,i,b)=>  {
     console.log(error);
     
   }
-  //request0(a,i+1,b);
-  
-}else{
-  return;
-}
+  request0(array,i+1,b);
 }
 
 //ritorna i senses di una data parola in input(word) nella lingua lang
-const request1_1=async  (b,word,lang,pos)=>  {
+const request1_1=async  (b,word,lang,pos,relation)=>  {
   pos=pos.toUpperCase();
   lang=functions.formatLang2High(lang);
   const url="https://babelnet.io/v6/getSenses?lemma="+word+"&searchLang="+lang+"&pos="+pos+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
   try {
     const response = await axios.get(url);
     let out=response.data;
-    
+    console.log(out)
     out.forEach(element => {
       
       if((element.properties.fullLemma==word)&&(element.properties.lemma.type="HIGH_QUALITY")){
-        console.log(element);
+        let id=element.properties.synsetID.id
+        request3(b,id,relation.toUpperCase(),lang)
+        //console.log(id);
         
       }
 
@@ -143,8 +143,7 @@ const request1=async  (b,word,lang,sensitive)=>  {
 
 //prende gli edge di un dato synset 
 
-const request2=async  (b)=>  {
-  const id="bn:00007287n";
+const request2=async  (b,id)=>  {
   const url="https://babelnet.io/v6/getOutgoingEdges?id="+id+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
   try {
     const response = await axios.get(url);
@@ -162,29 +161,26 @@ const request2=async  (b)=>  {
 
 //prende HYPERNYM,  HYPONYM, MERONYM, HOLONYM o  OTHER  di un dato synset 
 
-const request3=async  (a,b)=>  {
+const request3=async  (a,id,relation,lang)=>  {
   //let relation=a;
-  const id="bn:00001844n";
   const url="https://babelnet.io/v6/getOutgoingEdges?id="+id+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
   try {
     const response = await axios.get(url);
     let out=response.data;
     let string="";
-    let i=0;
-    console.log(out);
-    /*
-    out.forEach(element => {
-      if(relation==out[i].pointer.relationGroup){
-        let current=out[i].pointer.fSymbol;
-        string=string+"\n"+current;
-        console.log("current:"+current);
+    
+    //console.log(out[0])
+    request0(out,0,lang)
+    /*out.forEach(element => {
+      if(relation==element.pointer.relationGroup){
+        //request0(element.target,lang)
+        console.log("current:",element);
       }
-      i++;
-    });
-    */
+    });*/
+    
     //console.log(string);
     //b.status(201).send({message:""+string});
-    return out;
+    //return out;
   } catch (error) {
     console.log(error);
   }
