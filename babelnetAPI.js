@@ -197,5 +197,7 @@ module.exports={
   definitions:request4
 };
 
-//tutti i sinonimi si trovano nei senses
-
+/*
+*BabelNet potrebbe essere facilmente usato per trovare hypernym, hyponym , sinonimi e altro anche in più lingue.
+*Bisogna stare attenti a non eccedere il limite di richieste giornaliere
+*/

@@ -59,8 +59,8 @@ app.get("/all",(req,res)=>{
      * relation indicates if we want a HYPERNYM, HYPONYM , SYNOYM ot other
      */
     //babelMethods.senses(res,word,lang,sensitive);
-    babelMethods.senses_pos(res,word,lang,pos,relation)
-    //conceptMethods.assertions(res,word,lang,sensitive);
+    //babelMethods.senses_pos(res,word,lang,pos,relation)
+    conceptMethods.assertions(res,word,lang,sensitive);
     //dbNaryMethods.example(res,word,lang,sensitive);
     //dbPediaMethods.query(res,word,lang,sensitive);
     //wikiMethods.searchByName(res,word,lang,sensitive);

@@ -55,4 +55,7 @@ module.exports={
     query:r,
 }
 
-//Il problema principale è filtrare il dato input in maniera da farlo combaciare col dato nel dataset
+/**
+ * DBPedia si dimostra ottimo per trovare descrizioni dettagliate delle parole ricercate, cosa che gli altri dataset non forniscono,
+ * la pecca è che funziona solo per l'inglese e anche in inglese non è detto che abbia una descrizione per ogni parola ricercata
+ */
