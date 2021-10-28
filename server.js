@@ -71,7 +71,7 @@ app.get("/all",(req,res)=>{
     if(langs!=undefined&&langs.length>0){
         wikiMethods.translations(res,word,lang,langs,sensitive,limit);
     }
-    if(imgs==true){
+    if(imgs!=undefined&&imgs==true){
         wikiMethods.searchImgs(res,word,lang,sensitive,limit);
     }
 });

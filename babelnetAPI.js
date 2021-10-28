@@ -67,21 +67,23 @@ const synsets=async  (r,lemma,lang)=>  {
 
 
 //cerca il synset con identificativo id e ritorna una frase che lo descrive se ci sono
-const informations=async  (id,b,limit)=>  {
+const informations=async  (word,id,b,limit)=>  {
   const url="https://babelnet.io/v6/getSynset?id="+id+"&targetLang="+b+"&key="+KEY;
   try {
     const response = await axios.get(url);
     let out=response.data;
-    console.log(out);
     for(let i=0;i<limit;i++){
-      //console.log(out);
+      //console.log(out[i]);
     }
     //b.status(201).send({message:""+out});
-    /*let current =out.glosses[0];
-    if(current!=undefined){
-      console.log("BABELNET")
-      console.log(current.gloss)
-    }*/
+    let glosses=out.glosses;
+    if(word!=undefined){
+      console.log("word",word);
+    }
+    glosses.forEach(element => {
+
+      console.log("element",element.gloss);
+    });
 
   } catch (error) {
     console.log("BABELNET")
@@ -153,9 +155,9 @@ const senses_chars=async  (b,word,lang,sensitive,limit,relation)=>  {
     let out=response.data;
     if(functions.control(word,sensitive,out[0].properties.fullLemma)==true){
       for(let i=0;i<limit;i++){
-        console.log("name",out[i].properties.fullLemma);
-        characteristics(b,out[i].properties.synsetID.id,relation,lang,limit);
-        //informations(out[i].properties.synsetID.id,lang,limit);
+        console.log("name",out[i]);
+        //characteristics(b,out[i].properties.synsetID.id,relation,lang,limit);
+        informations(out[i].properties.fullLemma,out[i].properties.synsetID.id,lang,limit);
       }
     }
     /*out.forEach(element => {
