@@ -8,6 +8,7 @@ const wdk = WBK({
 const endpointUrl = 'https://query.wikidata.org/sparql'
 
 const SUBCLASS="P279"
+const IMGS="P18"
 const LIMIT=30;
 
 //subClasses è una matrice dove in ogni riga contiene una sottoclasse con gli elementi che contiene la stessa
@@ -56,8 +57,6 @@ const searchPropertyName=(id,lang)=>{
 })
 }
 const f1=(res,datas,langs,last)=>{
-
-  //aggiunge alla matrice delle sottoclassi , la label trovata (a) e le sue sottoclassi di appartenenza
 const quest=async(a,c,array,i,last)=>{
   if(array!=undefined){
     if(i==array.length){
@@ -66,9 +65,10 @@ const quest=async(a,c,array,i,last)=>{
     }
     }else{
     let subclass= await searchPropertyName(array[i].mainsnak.datavalue.value.id,c);//prende la label relativa alla sottoclasse 
+    //aggiunge alla matrice delle sottoclassi , la label trovata (a) e le sue sottoclassi di appartenenza
     addToSubClasses(subclass,a)
     quest(a,c,array,i+1,last);
-    console.log("MATRICE2",subClasses)
+    console.log("MATRICE",subClasses)
     }
   }else{
     if(last==true){
@@ -90,6 +90,7 @@ const quest=async(a,c,array,i,last)=>{
     datas.forEach(data => {
       langs.forEach(lang => {
       //prende la label legata all'id cercato
+      console.log("IMMAGGINI",response.data.entities[data].claims[IMGS]);
       let name=(response.data.entities[data].labels[lang].value);
       //prende gli id delle sottoclassi dell'id cercato
       let array=response.data.entities[data].claims[SUBCLASS];
@@ -121,16 +122,12 @@ const f=(res,word,lang,sensitive)=>{
       })
 
       console.log("WIKIDATA");
+      
       let i=0;
       search_items.forEach(element => {
         i++
         if(functions.control(word,sensitive,element.label)==true){
-          if(i==LIMIT){
-            console.log("OK")
-            f1(res,[element.id],[lang],true)
-          }else{
             f1(res,[element.id],[lang])
-          }
         }
       });
       

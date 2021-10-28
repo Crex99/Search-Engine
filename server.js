@@ -47,6 +47,7 @@ app.get("/all",(req,res)=>{
     let sensitive=false;
     let imgs=false;
     const relation=req.query.relation;
+    const limit=Number(req.query.limit);
     const pos=req.query.pos;
     const word=req.query.word;
     const lang=req.query.lang;
@@ -58,12 +59,13 @@ app.get("/all",(req,res)=>{
      * pos and relation are parameters only for babelnet, pos indicates if we want a verb, a noun , a pronoun
      * relation indicates if we want a HYPERNYM, HYPONYM , SYNOYM ot other
      */
-    //babelMethods.senses(res,word,lang,sensitive);
-    //babelMethods.senses_pos(res,word,lang,pos,relation)
-    conceptMethods.assertions(res,word,lang,sensitive);
+    babelMethods.senses_chars(res,word,lang,sensitive,limit,relation);
+    //babelMethods.senses_pos(res,word,lang,pos,relation);
+    //babelMethods.characteristics(res,word,lang,relation);
+    //conceptMethods.assertions(res,word,lang,sensitive);
     //dbNaryMethods.example(res,word,lang,sensitive);
     //dbPediaMethods.query(res,word,lang,sensitive);
-    //wikiMethods.searchByName(res,word,lang,sensitive);
+    //wikiMethods.searchByName(res,word,lang,sensitive,imgs);
 });
 
 app.get("/babelNet",(req,res)=>{

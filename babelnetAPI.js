@@ -1,8 +1,12 @@
 const axios = require('axios');
 const functions=require("./commonFeauters")
 const SparqlClient = require("sparql-http-client");
+const { formatWord } = require('./commonFeauters');
 const endpointUrl ='https://babelnet.org/sparql/';
+const KEY="69b0ba73-de64-4cee-a700-c2005da7ed66";
+const KEY2="f82361e3-a269-453f-a1ea-a294233c2e71";
 
+/*
 //restituisce le definizioni di una parola in una lingua scelta
 const request4=(res,word,lang)=>{
   const qr =(word,lang)=>{
@@ -25,7 +29,7 @@ const request4=(res,word,lang)=>{
     console.log(query)
     const stream=await client.query.select(query)
     console.log(stream)
-    /*
+    
     stream.on('data', row => {
       Object.entries(row).forEach(([key, value]) => {
       let current=`${value.value}`;
@@ -36,23 +40,23 @@ const request4=(res,word,lang)=>{
       
     stream.on('error', err => {
     console.log(err)
-    })*/
+    })
   }
 
   async();
 }
-
+*/
 
 
 //cerca la parola lemma , nella lingua lang e ritorna la lista dei synset ID che combaciano
-const request=async  (r,lemma,lang)=>  {
+const synsets=async  (r,lemma,lang)=>  {
   
    lang=functions.formatLang2High(lang);
-  const url="https://babelnet.io/v6/getSynsetIds?lemma="+lemma+"&searchLang="+lang+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
+  const url="https://babelnet.io/v6/getSynsetIds?lemma="+lemma+"&searchLang="+lang+"&key="+KEY;
   try {
     const response = await axios.get(url);
     let out=response.data;
-    console.log(out[0]);
+    console.log(out);
       //request0(out,0,lang)
     //r.status(201).send({message:""+string});
   } catch (error) {
@@ -63,16 +67,15 @@ const request=async  (r,lemma,lang)=>  {
 
 
 //cerca il synset con identificativo id e ritorna una frase che lo descrive se ci sono
-const request0=async  (array,i,b)=>  {
-  if(i==array.length){
-    return;
-  }
-
-  const url="https://babelnet.io/v6/getSynset?id="+array[i].target+"&targetLang="+b+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
+const informations=async  (id,b,limit)=>  {
+  const url="https://babelnet.io/v6/getSynset?id="+id+"&targetLang="+b+"&key="+KEY;
   try {
     const response = await axios.get(url);
     let out=response.data;
-    console.log("description",out.glosses[0].gloss);
+    console.log(out);
+    for(let i=0;i<limit;i++){
+      //console.log(out);
+    }
     //b.status(201).send({message:""+out});
     /*let current =out.glosses[0];
     if(current!=undefined){
@@ -83,16 +86,14 @@ const request0=async  (array,i,b)=>  {
   } catch (error) {
     console.log("BABELNET")
     console.log(error);
-    
   }
-  request0(array,i+1,b);
 }
 
-//ritorna i senses di una data parola in input(word) nella lingua lang
-const request1_1=async  (b,word,lang,pos,relation)=>  {
+//ritorna i senses di una data parola in input(word) nella lingua lang con posizione nella frase scelta
+const senses_pos=async  (b,word,lang,pos,relation)=>  {
   pos=pos.toUpperCase();
   lang=functions.formatLang2High(lang);
-  const url="https://babelnet.io/v6/getSenses?lemma="+word+"&searchLang="+lang+"&pos="+pos+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
+  const url="https://babelnet.io/v6/getSenses?lemma="+word+"&searchLang="+lang+"&pos="+pos+"&key="+KEY;
   try {
     const response = await axios.get(url);
     let out=response.data;
@@ -101,7 +102,7 @@ const request1_1=async  (b,word,lang,pos,relation)=>  {
       
       if((element.properties.fullLemma==word)&&(element.properties.lemma.type="HIGH_QUALITY")){
         let id=element.properties.synsetID.id
-        request3(b,id,relation.toUpperCase(),lang)
+        characteristics(b,id,relation.toUpperCase(),lang)
         //console.log(id);
         
       }
@@ -115,15 +116,47 @@ const request1_1=async  (b,word,lang,pos,relation)=>  {
   }
 };
 
-//ritorna i senses di una data parola in input(word) nella lingua lang
-const request1=async  (b,word,lang,sensitive)=>  {
+//ritorna i senses di una data parola in input(word) nella lingua lang e chiama la funzione informations
+const senses_inf=async  (b,word,lang,sensitive,limit)=>  {
   lang=functions.formatLang2High(lang);
-  const url="https://babelnet.io/v6/getSenses?lemma="+word+"&searchLang="+lang+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
+  const url="https://babelnet.io/v6/getSenses?lemma="+word+"&searchLang="+lang+"&key="+KEY;
   try {
     const response = await axios.get(url);
     let out=response.data;
     if(functions.control(word,sensitive,out[0].properties.fullLemma)==true){
-      console.log(out[0]);
+      for(let i=0;i<limit;i++){
+        console.log("name",out[i].properties.fullLemma);
+        informations(out[i].properties.synsetID.id,lang,limit);
+      }
+    }
+    /*out.forEach(element => {
+      
+      if((element.properties.fullLemma==word)&&(element.properties.lemma.type="HIGH_QUALITY")){
+        console.log(element);
+        
+      }
+
+    });*/
+    
+    //b.status(201).send({message:""+out});
+    return out;
+  } catch (error) {
+    console.log(error);
+  }
+};
+//ritorna i senses di una data parola in input(word) nella lingua lang e chiama la funzione characteristics
+const senses_chars=async  (b,word,lang,sensitive,limit,relation)=>  {
+  lang=functions.formatLang2High(lang);
+  const url="https://babelnet.io/v6/getSenses?lemma="+word+"&searchLang="+lang+"&key="+KEY;
+  try {
+    const response = await axios.get(url);
+    let out=response.data;
+    if(functions.control(word,sensitive,out[0].properties.fullLemma)==true){
+      for(let i=0;i<limit;i++){
+        console.log("name",out[i].properties.fullLemma);
+        characteristics(b,out[i].properties.synsetID.id,relation,lang,limit);
+        //informations(out[i].properties.synsetID.id,lang,limit);
+      }
     }
     /*out.forEach(element => {
       
@@ -143,13 +176,14 @@ const request1=async  (b,word,lang,sensitive)=>  {
 
 //prende gli edge di un dato synset 
 
-const request2=async  (b,id)=>  {
-  const url="https://babelnet.io/v6/getOutgoingEdges?id="+id+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
+const edges=async  (b,id,limit)=>  {
+  const url="https://babelnet.io/v6/getOutgoingEdges?id="+id+"&key="+KEY;
   try {
     const response = await axios.get(url);
     let out=response.data;
-    
-    console.log(out);
+    for(let i=0;i<limit;i++){
+      console.log(out[i]);
+    }
     
     //b.status(201).send({message:""+out});
     return out;
@@ -159,28 +193,32 @@ const request2=async  (b,id)=>  {
 };
 
 
-//prende HYPERNYM,  HYPONYM, MERONYM, HOLONYM o  OTHER  di un dato synset 
+//prende HYPERNYM,  HYPONYM, MERONYM, HOLONYM o  OTHER  di un dato synset e chiama informations per ogni risultato
 
-const request3=async  (a,id,relation,lang)=>  {
-  //let relation=a;
-  const url="https://babelnet.io/v6/getOutgoingEdges?id="+id+"&key=69b0ba73-de64-4cee-a700-c2005da7ed66";
+const characteristics=async  (a,id,relation,lang,limit)=>  {
+  relation=relation.toUpperCase();
+  console.log("relation",relation);
+  console.log("lang",lang);
+  const url="https://babelnet.io/v6/getOutgoingEdges?id="+id+"&key="+KEY;
   try {
     const response = await axios.get(url);
     let out=response.data;
-    let string="";
-    
-    //console.log(out[0])
-    request0(out,0,lang)
-    /*out.forEach(element => {
-      if(relation==element.pointer.relationGroup){
-        //request0(element.target,lang)
-        console.log("current:",element);
+    let element="";
+    let i=0;
+    out.forEach(element => {
+      if(i==limit){
+        return;
       }
-    });*/
-    
-    //console.log(string);
-    //b.status(201).send({message:""+string});
-    //return out;
+      console.log(relation);
+      console.log(element.pointer.relationGroup)
+      console.log(element.language)
+      console.log(lang)
+      if(relation==element.pointer.relationGroup&&element.language==lang){
+        i++;
+        console.log("current:",element);
+        informations(element.target,lang,limit)
+      }
+    });   
   } catch (error) {
     console.log(error);
   }
@@ -188,13 +226,13 @@ const request3=async  (a,id,relation,lang)=>  {
 
 
 module.exports={
-  synsets:request,
-  informations:request0,
-  senses:request1,
-  senses_pos:request1_1,
-  edges:request2,
-  characteristics:request3,
-  definitions:request4
+  synsets:synsets,
+  informations:informations,
+  senses_inf:senses_inf,
+  senses_chars:senses_chars,
+  senses_pos:senses_pos,
+  edges:edges,
+  characteristics:characteristics
 };
 
 /*

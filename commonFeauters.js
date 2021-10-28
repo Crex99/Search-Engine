@@ -30,9 +30,8 @@ const f1=(w)=>{
       }
 
       const f4=(l)=>{
-        let out=l.toUpperCase();
         out=l[0]+l[1];
-        return out;
+        return out.toUpperCase();
       }
 
 
