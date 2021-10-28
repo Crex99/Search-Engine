@@ -139,8 +139,57 @@ const f=(res,word,lang,sensitive)=>{
  * gli id trovati da searchByName vengono dati in pasto a searchById che trova tutte le informazioni per ogni id
  * searchByName divide i risultati trovati in base alle sottoclassi, che vengono cercate da searchPropertyName
  */
+
+/**ritorna le traduzioni di una parola nelle lingue scelte */
+const translations=(res,word,lang,langs,sensitive,max)=>{
+lang=functions.formatLang2low(lang)
+let array_langs=langs.split(",");
+console.log(array_langs);
+array_langs=array_langs.map((item)=>{
+  return functions.formatLang2low(item)
+})
+//ricerca degli id in base alla parola data
+const url = wdk.searchEntities({
+  search: word,
+  format: 'json',
+  language: lang,
+  limit:max
+})
+
+let search_items="";
+
+axios.get(url).then((response)=>{
+  const wikidata_response=response.data;
+      search_items=wikidata_response.search.map((item)=>{
+        return item.id
+})
+
+console.log("result",search_items);
+
+//ricerca delle descrizioni in lin gue diverse in base agli id trovati
+const url0 = wdk.getEntities({
+  ids: search_items,
+  format: 'json',
+  languages: array_langs,
+  limit:max
+})
+let current=""
+axios.get(url0).then((response)=>{
+  search_items.forEach(entity => {
+    array_langs.forEach(l => {
+      console.log(l);
+      current=response.data.entities[entity].descriptions[l]
+      if(current!=undefined){
+        console.log(current.value);
+      }
+    });
+  });
+})
+})
+}
 module.exports={
     searchByName:f,
     searchById:f1,
+    translations:translations
 }
 
