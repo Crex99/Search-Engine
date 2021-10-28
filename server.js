@@ -59,15 +59,21 @@ app.get("/all",(req,res)=>{
      * imgs is a parameter that specify if we want also images 
      * pos and relation are parameters only for babelnet, pos indicates if we want a verb, a noun , a pronoun
      * relation indicates if we want a HYPERNYM, HYPONYM , SYNOYM ot other
+     * langs indicates the langs that user wants to obtain a translation
      */
-    //babelMethods.senses_chars(res,word,lang,sensitive,limit,relation);
+    babelMethods.senses_chars(res,word,lang,sensitive,limit,relation);
     //babelMethods.senses_pos(res,word,lang,pos,relation);
     //babelMethods.characteristics(res,word,lang,relation);
     //conceptMethods.assertions(res,word,lang,sensitive);
     //dbNaryMethods.example(res,word,lang,sensitive);
     //dbPediaMethods.query(res,word,lang,sensitive);
     //wikiMethods.searchByName(res,word,lang,sensitive,imgs);
-    wikiMethods.translations(res,word,lang,langs,sensitive,limit);
+    if(langs!=undefined&&langs.length>0){
+        wikiMethods.translations(res,word,lang,langs,sensitive,limit);
+    }
+    if(imgs==true){
+        wikiMethods.searchImgs(res,word,lang,sensitive,limit);
+    }
 });
 
 app.get("/babelNet",(req,res)=>{

@@ -161,7 +161,9 @@ let search_items="";
 axios.get(url).then((response)=>{
   const wikidata_response=response.data;
       search_items=wikidata_response.search.map((item)=>{
-        return item.id
+        if(functions.control(word,sensitive,item.label)==true){
+          return item.id
+        }
 })
 
 console.log("result",search_items);
@@ -187,9 +189,59 @@ axios.get(url0).then((response)=>{
 })
 })
 }
+
+const searchImgs=(res,word,lang,sensitive,max)=>{
+  lang=functions.formatLang2low(lang)
+
+  const url = wdk.searchEntities({
+    search: word,
+    format: 'json',
+    language: lang,
+    limit:max
+  })
+
+  let search_items=""
+  axios.get(url).then((response)=>{
+    const wikidata_response=response.data;
+       search_items=wikidata_response.search.map((item)=>{
+          return item.id
+      })
+
+      console.log(search_items)
+      const url0 = wdk.getEntities({
+        ids: search_items,
+        languages:[lang],
+        format: 'json',
+        limit: max
+      })
+
+      let current=""
+
+      axios.get(url0).then((response)=>{
+        const wiki_response=response.data;
+        search_items.forEach(element => {
+          current=wiki_response.entities[element].claims[IMGS]
+          if(current!=undefined){
+            current.forEach(element => {
+              console.log(element)
+            });
+            
+          }
+        });
+        /*research_items=wiki_response.search.map((item)=>{
+          return item;
+        })*/
+        //console.log(response.data)
+        //console.log("result",research_items[0])
+      })
+  })
+}
+
+
 module.exports={
     searchByName:f,
     searchById:f1,
-    translations:translations
+    translations:translations,
+    searchImgs:searchImgs
 }
 
