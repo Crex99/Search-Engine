@@ -155,9 +155,11 @@ const senses_chars=async  (b,word,lang,sensitive,limit,relation)=>  {
     let out=response.data;
     if(functions.control(word,sensitive,out[0].properties.fullLemma)==true){
       for(let i=0;i<limit;i++){
-        console.log("name",out[i]);
-        //characteristics(b,out[i].properties.synsetID.id,relation,lang,limit);
-        informations(out[i].properties.fullLemma,out[i].properties.synsetID.id,lang,limit);
+        if(relation!=undefined){
+          characteristics(b,out[i].properties.fullLemma,out[i].properties.synsetID.id,relation,lang,limit);
+        }else{
+          informations(out[i].properties.fullLemma,out[i].properties.synsetID.id,lang,limit);
+        }
       }
     }
     /*out.forEach(element => {
@@ -197,10 +199,8 @@ const edges=async  (b,id,limit)=>  {
 
 //prende HYPERNYM,  HYPONYM, MERONYM, HOLONYM o  OTHER  di un dato synset e chiama informations per ogni risultato
 
-const characteristics=async  (a,id,relation,lang,limit)=>  {
+const characteristics=async  (a,word,id,relation,lang,limit)=>  {
   relation=relation.toUpperCase();
-  console.log("relation",relation);
-  console.log("lang",lang);
   const url="https://babelnet.io/v6/getOutgoingEdges?id="+id+"&key="+KEY;
   try {
     const response = await axios.get(url);
@@ -211,14 +211,9 @@ const characteristics=async  (a,id,relation,lang,limit)=>  {
       if(i==limit){
         return;
       }
-      console.log(relation);
-      console.log(element.pointer.relationGroup)
-      console.log(element.language)
-      console.log(lang)
       if(relation==element.pointer.relationGroup&&element.language==lang){
         i++;
-        console.log("current:",element);
-        informations(element.target,lang,limit)
+        informations(word,element.target,lang,limit)
       }
     });   
   } catch (error) {

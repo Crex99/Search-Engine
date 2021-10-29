@@ -61,9 +61,10 @@ app.get("/all",(req,res)=>{
      * relation indicates if we want a HYPERNYM, HYPONYM , SYNOYM ot other
      * langs indicates the langs that user wants to obtain a translation
      */
-    babelMethods.senses_chars(res,word,lang,sensitive,limit,relation);
     //babelMethods.senses_pos(res,word,lang,pos,relation);
-    //babelMethods.characteristics(res,word,lang,relation);
+    if(relation!=undefined){
+        babelMethods.senses_chars(res,word,lang,sensitive,limit,relation);
+    }
     //conceptMethods.assertions(res,word,lang,sensitive);
     //dbNaryMethods.example(res,word,lang,sensitive);
     //dbPediaMethods.query(res,word,lang,sensitive);
