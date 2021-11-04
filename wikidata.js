@@ -1,11 +1,14 @@
 const axios = require('axios');
 const functions=require("./commonFeauters")
 const WBK = require('wikibase-sdk')
+const md5=require("md5")
 const wdk = WBK({
   instance: 'https://www.wikidata.org',
   sparqlEndpoint: 'https://query.wikidata.org/sparql'
 })
 const endpointUrl = 'https://query.wikidata.org/sparql'
+
+const Trad=require("./Classes/Trad")
 
 const SUBCLASS="P279"
 const IMGS="P18"
@@ -142,9 +145,9 @@ const f=(res,word,lang,sensitive)=>{
 
 /**ritorna le traduzioni di una parola nelle lingue scelte */
 const translations=(res,word,lang,langs,sensitive,max)=>{
+return new Promise((resolve)=>{
 lang=functions.formatLang2low(lang)
 let array_langs=langs.split(",");
-console.log(array_langs);
 array_langs=array_langs.map((item)=>{
   return functions.formatLang2low(item)
 })
@@ -166,9 +169,7 @@ axios.get(url).then((response)=>{
         }
 })
 
-console.log("result",search_items);
-
-//ricerca delle descrizioni in lin gue diverse in base agli id trovati
+//ricerca delle descrizioni in lingue diverse in base agli id trovati
 const url0 = wdk.getEntities({
   ids: search_items,
   format: 'json',
@@ -176,21 +177,29 @@ const url0 = wdk.getEntities({
   limit:max
 })
 let current=""
+let out=[];
 axios.get(url0).then((response)=>{
-  search_items.forEach(entity => {
+  search_items.forEach(entity =>{
     array_langs.forEach(l => {
-      console.log(l);
       current=response.data.entities[entity].descriptions[l]
       if(current!=undefined){
-        console.log(current.value);
+        const trad=new Trad(l,current.value);
+        if(out[0]==undefined){
+          out[0]=trad
+        }else{
+          out.push(trad);
+        }
       }
     });
   });
+  resolve(out)
+})
 })
 })
 }
 
 const searchImgs=(res,word,lang,sensitive,max)=>{
+  return new Promise((resolve)=>{
   lang=functions.formatLang2low(lang)
 
   const url = wdk.searchEntities({
@@ -207,7 +216,6 @@ const searchImgs=(res,word,lang,sensitive,max)=>{
           return item.id
       })
 
-      console.log(search_items)
       const url0 = wdk.getEntities({
         ids: search_items,
         languages:[lang],
@@ -216,25 +224,33 @@ const searchImgs=(res,word,lang,sensitive,max)=>{
       })
 
       let current=""
-
+      let array=[];
       axios.get(url0).then((response)=>{
         const wiki_response=response.data;
         search_items.forEach(element => {
           current=wiki_response.entities[element].claims[IMGS]
           if(current!=undefined){
             current.forEach(element => {
-              console.log(element)
+              const name=replaceAll(element.mainsnak.datavalue.value," ","_")
+              const hash=md5(name)
+              const url="https://upload.wikimedia.org/wikipedia/commons/"+hash[0]+"/"+hash[0]+hash[1]+"/"+name
+              array.push(url);
             });
             
           }
         });
-        /*research_items=wiki_response.search.map((item)=>{
-          return item;
-        })*/
-        //console.log(response.data)
-        //console.log("result",research_items[0])
+        resolve(array);
       })
   })
+})
+}
+
+const replaceAll=(word,remove,add)=>{
+  if(word.includes(remove)==true){
+    return replaceAll(word.replace(remove,add),remove,add)
+  }else{
+    return word;
+  }
 }
 
 

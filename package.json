@@ -17,6 +17,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "helmet": "^4.6.0",
+    "md5": "^2.3.0",
     "node-fetch": "^3.0.0",
     "sparql-http-client": "^2.4.0",
     "sparqljs": "^3.5.1",
