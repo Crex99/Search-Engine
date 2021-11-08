@@ -1,39 +1,50 @@
-const Trad=require("./Trad")
+const Trad = require("./Trad")
 
-const response=class Response{
-    constructor(){
-        this.trads=[]
-        this.imgs=[]
+const response = class Response {
+    constructor() {
+        this.trads = []
+        this.imgs = []
+        this.senses = []
     }
 
-    getTrads(){
+    getTrads() {
         return this.trads;
     }
 
-    getImgs(){
+    getImgs() {
         return this.imgs;
     }
 
-    addImg(img){
+    addImg(img) {
         this.imgs.push(img)
     }
 
-    addTrad(trad){
+    addTrad(trad) {
         this.trads.push(trad);
     }
 
-    addImgs(imgs){
-        this.imgs=this.imgs.concat(imgs);
+    addSense(sense) {
+        if (this.senses.includes(sense) == false) {
+            this.senses.push(sense)
+        }
     }
 
-    addTrads(trads){
-        if(this.trads.length==1){
-            
-            this.trads=trads
-        }else{
-            this.trads=this.trads.concat(trads);
+    addImgs(imgs) {
+        this.imgs = this.imgs.concat(imgs);
+    }
+
+    addTrads(trads) {
+        if (this.trads.length == 1) {
+
+            this.trads = trads
+        } else {
+            this.trads = this.trads.concat(trads);
         }
+    }
+
+    addSenses(senses) {
+        this.senses = this.senses.concat(senses)
     }
 }
 
-module.exports=response;
+module.exports = response;
