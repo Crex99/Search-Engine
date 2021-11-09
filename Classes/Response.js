@@ -5,6 +5,7 @@ const response = class Response {
         this.trads = []
         this.imgs = []
         this.senses = []
+        this.relations = []
     }
 
     getTrads() {
@@ -44,6 +45,10 @@ const response = class Response {
 
     addSenses(senses) {
         this.senses = this.senses.concat(senses)
+    }
+
+    addRelations(relations) {
+        this.relations = relations
     }
 }
 

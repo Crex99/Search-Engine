@@ -17,6 +17,7 @@ const all = async(req, res) => {
     const word = req.query.word;
     const lang = req.query.lang;
     const langs = req.query.trad;
+    const synonyms = Boolean(req.query.synonyms);
     sensitive = Boolean(req.query.sensitive);
     imgs = Boolean(req.query.imgs);
     /**
@@ -26,11 +27,11 @@ const all = async(req, res) => {
      * relation indicates if we want a HYPERNYM, HYPONYM , SYNOYM ot other
      * langs indicates the langs that user wants to obtain a translation
      */
-    //babelMethods.senses_pos(res,word,lang,pos,relation);
-    const senses = await babelMethods.senses(res, word, lang, sensitive, limit, relation);
+
+    const senses = await babelMethods.senses(res, word, lang, sensitive, limit, pos, relation, synonyms);
     out.addSenses(senses)
 
-    //conceptMethods.assertions(res,word,lang,sensitive);
+    //out.addRelations(await conceptMethods.assertions(res, word, lang, sensitive))
     //dbNaryMethods.example(res,word,lang,sensitive);
     //dbPediaMethods.query(res,word,lang,sensitive);
     //wikiMethods.searchByName(res,word,lang,sensitive,imgs);

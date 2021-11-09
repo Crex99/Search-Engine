@@ -1,8 +1,9 @@
 const sense = class Sense {
-    constructor(name, relation) {
+    constructor(name, synonyms, relation) {
         this.name = name
         this.relation = relation
         this.descriptions = []
+        this.synonyms = synonyms
     }
 
     getName() {
