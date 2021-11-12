@@ -2,13 +2,56 @@ const axios = require('axios');
 const functions = require("./commonFeauters")
 const { formatWord } = require('./commonFeauters');
 const endpointUrl = 'https://babelnet.org/sparql/';
-const KEY = "69b0ba73-de64-4cee-a700-c2005da7ed66";
+const KEY1 = "69b0ba73-de64-4cee-a700-c2005da7ed66";
 const KEY2 = "f82361e3-a269-453f-a1ea-a294233c2e71";
-const Sense = require("./Classes/Sense")
+const KEY = "e7849be2-f543-4c17-afef-24d9a5e9abbe"
+const Sense = require("./Classes/Sense");
+const Trad = require('./Classes/Trad');
 
 const SYNONYM = "POTENTIAL_NEAR_SYNONYM_OR_WORSE"
 
 let synonyms = []
+let trads_array = []
+let relations_array = []
+
+const addRelEl = (el, rel) => {
+
+    relations_array.forEach(element => {
+
+        if (element[0] == rel) {
+            element.push(el)
+        }
+    });
+
+}
+
+const addRelation = (relation) => {
+    if (relations_array.length == 0) {
+        relations_array.push([relation]);
+    } else {
+
+        let verify = false
+
+        relations_array.forEach(element => {
+            if (element[0] == relation) {
+                verify = true
+            }
+        });
+
+        if (verify == false) {
+            relations_array.push([relation]);
+        }
+
+    }
+}
+
+const addTrad = (trad) => {
+    if (trads_array.length == 0) {
+        trads_array.push(trad)
+    } else if (trads_array.includes(trad) == false) {
+        trads_array.push(trad)
+    }
+}
 
 const addSynonim = (string) => {
     string = string.toLowerCase()
@@ -22,17 +65,26 @@ const addSynonim = (string) => {
 }
 
 
-//cerca la parola lemma , nella lingua lang e ritorna la lista dei synset ID che combaciano
-const synsets = async(r, lemma, lang) => {
 
-    lang = functions.formatLang2High(lang);
-    const url = "https://babelnet.io/v6/getSynsetIds?lemma=" + lemma + "&searchLang=" + lang + "&key=" + KEY;
+const emotes = async(id, b) => {
+
+    let array = []
+
+    const url = "https://babelnet.io/v6/getSynset?id=" + id + "&targetLang=" + b + "&key=" + KEY;
     try {
         const response = await axios.get(url);
-        let out = response.data;
-        console.log(out);
-        //request0(out,0,lang)
-        //r.status(201).send({message:""+string});
+        return new Promise((resolve) => {
+            let out = response.data;
+            out.senses.forEach(element => {
+                if (element.properties.lemma.type == SYNONYM) {
+                    if (element.properties.lemma.lemma.length == 2) {
+                        array.push(element.properties.lemma.lemma)
+                    }
+                }
+
+            });
+            resolve(array);
+        })
     } catch (error) {
         console.log(error);
     }
@@ -42,6 +94,7 @@ const synsets = async(r, lemma, lang) => {
 
 //cerca il synset con identificativo id e ritorna una frase che lo descrive se ci sono
 const informations = async(word, id, b, syn) => {
+    console.log("ok")
     const url = "https://babelnet.io/v6/getSynset?id=" + id + "&targetLang=" + b + "&key=" + KEY;
     try {
         const response = await axios.get(url);
@@ -49,8 +102,10 @@ const informations = async(word, id, b, syn) => {
             let out = response.data;
             if (syn == true) {
                 out.senses.forEach(element => {
-                    if (element.properties.lemma.type == SYNONYM)
+                    if (element.properties.lemma.type == SYNONYM) {
                         addSynonim(element.properties.lemma.lemma)
+                    }
+
                 });
             }
             let glosses = out.glosses;
@@ -70,11 +125,16 @@ const informations = async(word, id, b, syn) => {
 }
 
 
-//ritorna i senses di una data parola in input(word) nella lingua lang e chiama la funzione characteristics
-const senses = async(b, word, lang, sensitive, limit, pos, relation, synonyms) => {
+//ritorna i senses di una data parola in input(word) 
+const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, emote, imgs, langs }) => {
     const array = []
     lang = functions.formatLang2High(lang);
     let url = "";
+
+    if (langs != undefined) {
+        langs = langs.split(",")
+        langs = langs.slice(0, 3);
+    }
     if (pos == undefined) {
         url = "https://babelnet.io/v6/getSenses?lemma=" + word + "&searchLang=" + lang + "&key=" + KEY;
     } else {
@@ -84,15 +144,50 @@ const senses = async(b, word, lang, sensitive, limit, pos, relation, synonyms) =
     try {
         const response = await axios.get(url);
         let out = response.data;
-        for (let i = 0; i < limit; i++) {
-            if (functions.control(word, sensitive, out[i].properties.fullLemma) == true) {
-                if (relation != undefined) {
-                    const final = await characteristics(b, out[i].properties.fullLemma, out[i].properties.synsetID.id, relation, lang, limit, synonyms)
 
-                    array.push(final)
+        for (let i = 0; i < limit; i++) {
+
+            if (functions.control(word, sensitive, out[i].properties.fullLemma) == true) {
+
+                if (relations == true) {
+                    const sense = new Sense(out[i].properties.fullLemma);
+
+                    const final = await characteristics(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
+
+                    sense.relations = final
+
+                    array.push(sense)
+
+                } else if (imgs == true) {
+
+                    const sense = new Sense(out[i].properties.fullLemma);
+
+                    const final = await searchImgs(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
+                    console.log("final", final)
+                    sense.images = final
+
+                    array.push(sense)
+
+                } else if (langs != undefined) {
+                    let sense = new Sense(out[i].properties.fullLemma);
+                    let final = await trads(out[i].properties.fullLemma, out[i].properties.synsetID.id, langs, limit)
+                    sense.trads = final
+                    console.log("sense", sense)
+                    array.push(sense)
+                    console.log("array", array)
+                } else if (emote == true) {
+
+                    const sense = new Sense(out[i].properties.fullLemma)
+
+                    const final = await emotes(out[i].properties.synsetID.id, lang)
+                    if (final.length > 0) {
+                        sense.emotes = final
+                        array.push(sense)
+                    }
 
                 } else {
-                    const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms);
+                    console.log("ok")
+                    const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, emote);
 
                     array.push(final)
                 }
@@ -100,6 +195,7 @@ const senses = async(b, word, lang, sensitive, limit, pos, relation, synonyms) =
                 i--;
             }
         }
+        //console.log("arrayfinal", array)
         return array;
 
     } catch (error) {
@@ -107,69 +203,157 @@ const senses = async(b, word, lang, sensitive, limit, pos, relation, synonyms) =
     }
 };
 
-//prende gli edge di un dato synset 
+//prende le immagini dato un id 
 
-const edges = async(b, id, limit) => {
-    const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY;
-    try {
-        const response = await axios.get(url);
-        let out = response.data;
-        for (let i = 0; i < limit; i++) {
-            console.log(out[i]);
-        }
+const searchImgs = (sense, id, lang, limit) => {
 
-        //b.status(201).send({message:""+out});
-        return out;
-    } catch (error) {
-        console.log(error);
-    }
+    return new Promise((resolve) => {
+
+        const url = "https://babelnet.io/v6/getSynset?id=" + id + "&key=" + KEY
+
+
+        const response = axios.get(url).then((result) => {
+
+            imgs = result.data.images
+            let i = 0;
+            let array = []
+            console.log(sense)
+            imgs.forEach(element => {
+                if (i == limit) {
+                    resolve(array);
+                }
+                const name = element.name
+                const url = element.url
+                array.push({ name, url })
+                i++;
+            });
+
+            resolve(array);
+
+
+        })
+
+    })
+
 };
 
+const trads = async(word, id, langs, limit) => {
+    trads_array.length = 0
 
-//prende HYPERNYM,  HYPONYM, MERONYM, HOLONYM o  OTHER  di un dato synset e chiama informations per ogni risultato
+    const url = "https://babelnet.io/v6/getSynset?id=" + id + "&targetLang=" + functions.formatLang2High(langs[0]) + "&targetLang=" + functions.formatLang2High(langs[1]) + "&targetLang=" + functions.formatLang2High(langs[2]) + "&key=" + KEY
 
-const characteristics = async(a, word, id, relation, lang, limit, synonyms) => {
-    relation = relation.toUpperCase();
+    const response = await axios.get(url);
+    const glosses = response.data.glosses
+    console.log("limit", limit)
+    for (let i = 0; i < glosses.length && i < limit; i++) {
+
+        const element = glosses[i];
+        let categories = response.data.tags
+        let category = ""
+        for (let y = 0; y < categories.length; y++) {
+            if (categories[y].DATA != undefined) {
+                if (categories[y].DATA.language == element.language) {
+                    category = categories[y].DATA.category;
+                    y = categories.length
+                }
+            }
+        }
+
+
+
+        const trad = new Trad(element.language, element.gloss, category)
+        addTrad(trad)
+    }
+
+    console.log("length", trads_array.length)
+    return trads_array
+}
+
+
+
+
+
+//prende le relazioni
+
+const characteristics = async(word, id, lang, limit) => {
+    relations_array.length = 0;
     const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY;
     try {
         let array = [];
-        let arrayout = [];
+        let arrayPointers = []
+        let arrayout = []
         const response = await axios.get(url);
         return new Promise((resolve) => {
             let out = response.data;
 
-            let i = 0;
-            out.forEach(element => {
+            for (let i = 0; i < limit && i < out.length; i++) {
 
-                if (i == limit) {
-                    resolve(arrayout);
-                }
-                if (relation == element.pointer.relationGroup && element.language == lang) {
+                let element = out[i]
+                if (element.language == lang) {
+
+
                     if (array.length == 0 || array.includes(element.target) == false) {
 
                         array.push(element.target)
-                        i++;
-                        informations(word, type, element.target, lang, synonyms).then((result) => {
-                            result.addRelation(relation + " OF " + word)
-                            arrayout.push(result)
-                        })
+                        arrayPointers.push(element.pointer.relationGroup)
+                            /*supChar(element.target, element.pointer.relationGroup).then((result) => {
+                                console.log(i)
+                                
+                                console.log("rel", result.rel)
+                                console.log("lemma", result.lemma)
+
+                                addRelEl(result.lemma, result.rel)
+                                if (i == limit - 1 || i == out.length - 1) {
+                                    console.log(i)
+                                }
+                                //console.log("array", relations_array)
+                            })*/
+
+
                     }
                 }
-            });
-            resolve(arrayout)
+            }
+
+            supChar(array, arrayPointers, 0).then((result) => {
+                console.log("result", result)
+                resolve(result)
+            })
         })
     } catch (error) {
         console.log(error);
     }
 };
 
+const supChar = async(ids, relatives, i) => {
+
+    const url = "https://babelnet.io/v6/getSynset?id=" + ids[i] + "&key=" + KEY
+
+    const result = await axios.get(url);
+
+    if (result.data.senses != undefined) {
+        addRelation(relatives[i])
+        addRelEl(result.data.senses[0].properties.fullLemma, relatives[i])
+    }
+
+    return new Promise((resolve) => {
+        if (i == ids.length - 1) {
+            resolve(relations_array)
+        } else {
+            resolve(supChar(ids, relatives, i + 1))
+        }
+    })
+
+}
+
+
 
 module.exports = {
-    synsets: synsets,
     informations: informations,
     senses: senses,
-    edges: edges,
-    characteristics: characteristics
+    searchImgs: searchImgs,
+    characteristics: characteristics,
+    trads: trads
+
 };
 
 /*

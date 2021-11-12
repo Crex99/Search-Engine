@@ -1,9 +1,17 @@
-const express= require("express");
-const helmet =require("helmet");
-const cors =require("cors");
-const app=express();
-const PORT=8080;
-const controller=require("./Controller")
+const express = require("express");
+const helmet = require("helmet");
+const cors = require("cors");
+const app = express();
+const PORT = 8080;
+const controller = require("./Controller");
+const conceptMethods = require("./conceptnetAPI");
+const dbNaryMethods = require("./dbNary");
+const babelMethods = require("./babelnetAPI");
+const wikiMethods = require("./wikidata");
+const dbPediaMethods = require("./dbpedia");
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 /**
  * Il middleware in express non è altro che una funzione 
@@ -34,44 +42,52 @@ app.use(cors());
  * send può trasmettere testo ma anche json
  */
 
-app.get("/",(req,res)=>{
-    res.status(200).send({message:"Hello da JS.it"});
+app.get("/", (req, res) => {
+    res.status(200).send({ message: "Hello da JS.it" });
 });
 
-app.get("/all",(req,res)=>controller.all(req,res))
+app.post("/imgs", (req, res) => controller.imgs(req, res))
 
-app.get("/babelNet",(req,res)=>{
-    const word=req.query.word;
-    const lang=req.query.lang;
-    const pos=req.query.pos;
-    babelMethods.synsets(res,word,lang);
+app.post("/trads", (req, res) => controller.trads(req, res))
+
+app.post("/senses", (req, res) => controller.senses(req, res))
+
+app.post("/relations", (req, res) => controller.relations(req, res))
+
+app.get("/all", (req, res) => controller.all(req, res))
+
+app.post("/emoticons", (req, res) => controller.emoticons(req, res))
+
+app.get("/babelNet", (req, res) => {
+    const word = req.query.word;
+    const lang = req.query.lang;
+    const pos = req.query.pos;
+    babelMethods.synsets(res, word, lang);
     //babelMethods.definitions(res,word,lang);
 });
 
-app.get("/conceptNet",(req,res)=>{
-    const word=req.query.word;
-    const lang=req.query.lang;
-    conceptMethods.assertions(res,word,lang);
+app.get("/conceptNet", (req, res) => {
+    conceptMethods.edges();
 });
 
-app.get("/dbNary",(req,res)=>{
-    const word=req.query.word;
-    const lang=req.query.lang;
-    dbNaryMethods.example(res,word,lang);
+app.post("/dbNary", (req, res) => {
+    const word = req.body.word;
+    const lang = req.body.lang;
+    dbNaryMethods.test(word, lang);
 });
 
-app.get("/dbPedia",(req,res)=>{
-    const word=req.query.word;
-    const lang=req.query.lang;
-    dbPediaMethods.query(res,word,lang);
+app.post("/dbPedia", (req, res) => {
+    const word = req.body.word;
+    const lang = req.body.lang;
+    dbPediaMethods.query(res, word, lang);
 });
 
-app.get("/wikiData",(req,res)=>{
-    const word=req.query.word;
-    const lang=req.query.lang;
-    wikiMethods.searchCategory(res,word,lang);
+app.get("/wikiData", (req, res) => {
+    const word = req.query.word;
+    const lang = req.query.lang;
+    wikiMethods.searchCategory(res, word, lang);
 });
 
-app.listen(PORT,()=>{
-    console.log("server in ascolto alla porta "+PORT);
+app.listen(PORT, () => {
+    console.log("server in ascolto alla porta " + PORT);
 });

@@ -1,5 +1,8 @@
 const axios = require('axios');
+const { formatLang2low } = require('./commonFeauters');
 const functions = require("./commonFeauters")
+
+const SYMBOL = "SymbolOf"
 
 
 let matrix = [];
@@ -39,18 +42,19 @@ addElement = (row, el) => {
 //prende tutti gli edge di una data parola word in input nella lingua lang
 const edges = async(r) => {
 
-    const word = "rana";
+    const word = "gatto";
     const lang = "it";
     const url_conceptnet = "http://api.conceptnet.io/c/" + lang + "/" + word;
     try {
         const response = await axios.get(url_conceptnet);
         let out = response.data.edges;
         out.forEach(element => {
-            console.log(element.rel.label)
-            console.log(element.start.label)
+            console.log("relation", element.rel.label)
+            console.log("label", element.start.label)
+            console.log("start lang", element.start.language)
+            console.log("end lang", element.end.language)
                 //console.log(element.surfaceText)
         });
-        r.status(201).send({ message: "" + out });
     } catch (error) {
         console.log(error);
     }
@@ -105,8 +109,64 @@ const request1 = async(r) => {
     }
 };
 
+const emoticons = async(word, lang) => {
+    word = word.toLowerCase()
+    lang = formatLang2low(lang)
+    const url_conceptnet = "http://api.conceptnet.io/c/" + lang + "/" + word;
+    try {
+        const response = await axios.get(url_conceptnet);
+        let out = response.data.edges;
+        let array = []
+        out.forEach(element => {
+
+            if (element.rel.label == SYMBOL) {
+                array.push(element.start.label)
+            }
+
+        });
+
+        return array
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+const trads = async(word, lang, langs, limit) => {
+    word = word.toLowerCase()
+    lang = formatLang2low(lang)
+    const url_conceptnet = "http://api.conceptnet.io/c/" + lang + "/" + word;
+
+    try {
+        const response = await axios.get(url_conceptnet)
+        let out = response.data;
+        const edges = out.edges
+        let array = []
+        let i = 0;
+        edges.forEach(element => {
+            if (i == limit) {
+                return array
+            }
+            if (langs.includes(element.end.language) == true) {
+                i++;
+                const lang = (element.end.language)
+                const label = (element.end.label)
+                const sense = (element.end.sense_label)
+                array.push({ lang, label, sense })
+            }
+
+        });
+
+        return array
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
 module.exports = {
     edges: edges,
     assertions: assertions,
-    relations: request1
+    relations: request1,
+    emoticons: emoticons,
+    trads: trads
 };

@@ -3,7 +3,10 @@ const sense = class Sense {
         this.name = name
         this.relation = relation
         this.descriptions = []
-        this.synonyms = synonyms
+        this.synonyms = [synonyms]
+        this.images = []
+        this.trads = []
+        this.emotes = []
     }
 
     getName() {
