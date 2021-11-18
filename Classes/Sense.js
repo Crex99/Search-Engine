@@ -1,9 +1,9 @@
 const sense = class Sense {
-    constructor(name, synonyms, relation) {
+    constructor(name, synonyms) {
         this.name = name
-        this.relation = relation
+        this.relations = []
         this.descriptions = []
-        this.synonyms = [synonyms]
+        this.synonyms = synonyms
         this.images = []
         this.trads = []
         this.emotes = []
@@ -14,8 +14,13 @@ const sense = class Sense {
     }
 
     addRelation(relation) {
-        this.relation = relation
+        this.relations.push(relation)
     }
+
+    setRelations(relations) {
+        this.relations = relations
+    }
+
 
     getDescriptions() {
         return this.descriptions
@@ -35,6 +40,10 @@ const sense = class Sense {
 
     addDescriptions(descriptions) {
         this.descriptions.concat(descriptions);
+    }
+
+    setSynonyms(synonyms) {
+        this.synonyms = synonyms
     }
 }
 

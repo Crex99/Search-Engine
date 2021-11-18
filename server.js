@@ -58,34 +58,13 @@ app.get("/all", (req, res) => controller.all(req, res))
 
 app.post("/emoticons", (req, res) => controller.emoticons(req, res))
 
-app.get("/babelNet", (req, res) => {
-    const word = req.query.word;
-    const lang = req.query.lang;
-    const pos = req.query.pos;
-    babelMethods.synsets(res, word, lang);
-    //babelMethods.definitions(res,word,lang);
-});
+app.post("/synonyms", (req, res) => controller.synonyms(req, res))
 
-app.get("/conceptNet", (req, res) => {
-    conceptMethods.edges();
-});
 
 app.post("/dbNary", (req, res) => {
     const word = req.body.word;
     const lang = req.body.lang;
     dbNaryMethods.test(word, lang);
-});
-
-app.post("/dbPedia", (req, res) => {
-    const word = req.body.word;
-    const lang = req.body.lang;
-    dbPediaMethods.query(res, word, lang);
-});
-
-app.get("/wikiData", (req, res) => {
-    const word = req.query.word;
-    const lang = req.query.lang;
-    wikiMethods.searchCategory(res, word, lang);
 });
 
 app.listen(PORT, () => {

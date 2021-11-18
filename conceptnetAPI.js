@@ -56,7 +56,7 @@ const edges = async(r) => {
                 //console.log(element.surfaceText)
         });
     } catch (error) {
-        console.log(error);
+        return error;
     }
 };
 
@@ -68,6 +68,7 @@ const assertions = async(r, word, lang, sensitive) => {
     try {
         const response = await axios.get(url_conceptnet);
         let out = response.data.edges;
+        console.log("out", out)
         let string = "";
         out.forEach(element => {
             if (functions.control(word, sensitive, element.start.label) == true) {
@@ -82,7 +83,7 @@ const assertions = async(r, word, lang, sensitive) => {
 
     } catch (error) {
 
-        console.log(error);
+        return error
     }
 };
 
@@ -105,7 +106,7 @@ const request1 = async(r) => {
         });
         //r.status(201).send({message:""+out});
     } catch (error) {
-        console.log(error);
+        return error
     }
 };
 
@@ -127,7 +128,7 @@ const emoticons = async(word, lang) => {
 
         return array
     } catch (error) {
-        console.log(error);
+        return error
     }
 }
 
@@ -146,19 +147,21 @@ const trads = async(word, lang, langs, limit) => {
             if (i == limit) {
                 return array
             }
-            if (langs.includes(element.end.language) == true) {
-                i++;
-                const lang = (element.end.language)
-                const label = (element.end.label)
-                const sense = (element.end.sense_label)
-                array.push({ lang, label, sense })
-            }
+            //if (langs.includes(element.start.language) == true) {
+            i++;
+
+            console.log("element", element)
+
+            const lang = (element.end.language)
+            const label = (element.start.label)
+            array.push({ lang, label })
+                // }
 
         });
 
         return array
     } catch (error) {
-        console.log(error);
+        return error
     }
 
 }

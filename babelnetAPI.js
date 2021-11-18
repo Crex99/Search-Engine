@@ -2,9 +2,9 @@ const axios = require('axios');
 const functions = require("./commonFeauters")
 const { formatWord } = require('./commonFeauters');
 const endpointUrl = 'https://babelnet.org/sparql/';
-const KEY1 = "69b0ba73-de64-4cee-a700-c2005da7ed66";
+const KEY = "69b0ba73-de64-4cee-a700-c2005da7ed66";
 const KEY2 = "f82361e3-a269-453f-a1ea-a294233c2e71";
-const KEY = "e7849be2-f543-4c17-afef-24d9a5e9abbe"
+const KEY3 = "e7849be2-f543-4c17-afef-24d9a5e9abbe"
 const Sense = require("./Classes/Sense");
 const Trad = require('./Classes/Trad');
 
@@ -46,9 +46,14 @@ const addRelation = (relation) => {
 }
 
 const addTrad = (trad) => {
-    if (trads_array.length == 0) {
-        trads_array.push(trad)
-    } else if (trads_array.includes(trad) == false) {
+    let verify = false
+    trads_array.forEach(element => {
+        if (element.lang == trad.lang && element.content.toLowerCase() == trad.content.toLowerCase()) {
+            verify = true
+        }
+    });
+
+    if (verify == false) {
         trads_array.push(trad)
     }
 }
@@ -93,30 +98,38 @@ const emotes = async(id, b) => {
 
 
 //cerca il synset con identificativo id e ritorna una frase che lo descrive se ci sono
-const informations = async(word, id, b, syn) => {
-    console.log("ok")
+const informations = async(word, id, b, syn, limit) => {
+
+    synonyms = []
     const url = "https://babelnet.io/v6/getSynset?id=" + id + "&targetLang=" + b + "&key=" + KEY;
     try {
         const response = await axios.get(url);
         return new Promise((resolve) => {
             let out = response.data;
+            let array = out.senses
             if (syn == true) {
-                out.senses.forEach(element => {
+                for (let i = 0; i < limit && i < array.length; i++) {
+
+                    let element = array[i]
                     if (element.properties.lemma.type == SYNONYM) {
+
+
                         addSynonim(element.properties.lemma.lemma)
                     }
-
-                });
+                }
             }
             let glosses = out.glosses;
-            let sense = ""
+            let sense = "";
             if (word != undefined) {
-                sense = new Sense(word, synonyms);
+                sense = new Sense(word);
+                sense.setSynonyms(synonyms);
             }
-            glosses.forEach(element => {
-                sense.addDescription(element.gloss)
-            });
-
+            if (syn != true) {
+                for (let i = 0; i < limit && i < glosses.length; i++) {
+                    let element = glosses[i]
+                    sense.addDescription(element.gloss)
+                }
+            }
             resolve(sense);
         })
     } catch (error) {
@@ -127,7 +140,8 @@ const informations = async(word, id, b, syn) => {
 
 //ritorna i senses di una data parola in input(word) 
 const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, emote, imgs, langs }) => {
-    const array = []
+
+    let array = []
     lang = functions.formatLang2High(lang);
     let url = "";
 
@@ -148,54 +162,56 @@ const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, e
         for (let i = 0; i < limit; i++) {
 
             if (functions.control(word, sensitive, out[i].properties.fullLemma) == true) {
+                if (out[i].properties.fullLemma.includes(word)) {
+                    if (relations == true) {
 
-                if (relations == true) {
-                    const sense = new Sense(out[i].properties.fullLemma);
+                        const final = await characteristics(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
 
-                    const final = await characteristics(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
+                        const sense = new Sense(out[i].properties.fullLemma);
 
-                    sense.relations = final
+                        sense.setRelations(final)
 
-                    array.push(sense)
-
-                } else if (imgs == true) {
-
-                    const sense = new Sense(out[i].properties.fullLemma);
-
-                    const final = await searchImgs(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
-                    console.log("final", final)
-                    sense.images = final
-
-                    array.push(sense)
-
-                } else if (langs != undefined) {
-                    let sense = new Sense(out[i].properties.fullLemma);
-                    let final = await trads(out[i].properties.fullLemma, out[i].properties.synsetID.id, langs, limit)
-                    sense.trads = final
-                    console.log("sense", sense)
-                    array.push(sense)
-                    console.log("array", array)
-                } else if (emote == true) {
-
-                    const sense = new Sense(out[i].properties.fullLemma)
-
-                    const final = await emotes(out[i].properties.synsetID.id, lang)
-                    if (final.length > 0) {
-                        sense.emotes = final
                         array.push(sense)
+
+
+                    } else if (imgs == true) {
+
+                        const sense = new Sense(out[i].properties.fullLemma);
+
+                        const final = await searchImgs(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
+                        sense.images = final
+
+                        array.push(sense)
+
+                    } else if (langs != undefined) {
+                        let sense = new Sense(out[i].properties.fullLemma);
+                        let final = await trads(out[i].properties.fullLemma, out[i].properties.synsetID.id, langs, limit)
+                        sense.trads = final
+                        array.push(sense)
+                    } else if (emote == true) {
+
+                        const sense = new Sense(out[i].properties.fullLemma)
+
+                        const final = await emotes(out[i].properties.synsetID.id, lang)
+                        if (final.length > 0) {
+                            sense.emotes = final
+                            array.push(sense)
+                        }
+
+                    } else if (synonyms == true) {
+
+                        const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, limit);
+                        if (final.synonyms.length > 0) {
+                            array.push(final)
+                        }
+                    } else {
+
+                        const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, limit);
+                        array.push(final)
                     }
-
-                } else {
-                    console.log("ok")
-                    const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, emote);
-
-                    array.push(final)
                 }
-            } else {
-                i--;
             }
         }
-        //console.log("arrayfinal", array)
         return array;
 
     } catch (error) {
@@ -214,19 +230,16 @@ const searchImgs = (sense, id, lang, limit) => {
 
         const response = axios.get(url).then((result) => {
 
-            imgs = result.data.images
+            let imgs = result.data.images
             let i = 0;
             let array = []
             console.log(sense)
-            imgs.forEach(element => {
-                if (i == limit) {
-                    resolve(array);
-                }
+            for (let i = 0; i < limit && i < imgs.length; i++) {
+                let element = imgs[i]
                 const name = element.name
                 const url = element.url
                 array.push({ name, url })
-                i++;
-            });
+            }
 
             resolve(array);
 
@@ -238,34 +251,33 @@ const searchImgs = (sense, id, lang, limit) => {
 };
 
 const trads = async(word, id, langs, limit) => {
-    trads_array.length = 0
+    trads_array = []
 
     const url = "https://babelnet.io/v6/getSynset?id=" + id + "&targetLang=" + functions.formatLang2High(langs[0]) + "&targetLang=" + functions.formatLang2High(langs[1]) + "&targetLang=" + functions.formatLang2High(langs[2]) + "&key=" + KEY
 
     const response = await axios.get(url);
-    const glosses = response.data.glosses
-    console.log("limit", limit)
-    for (let i = 0; i < glosses.length && i < limit; i++) {
 
-        const element = glosses[i];
-        let categories = response.data.tags
-        let category = ""
-        for (let y = 0; y < categories.length; y++) {
-            if (categories[y].DATA != undefined) {
-                if (categories[y].DATA.language == element.language) {
-                    category = categories[y].DATA.category;
-                    y = categories.length
-                }
+    let translations = response.data.translations
+
+    for (let i = 0; i < limit && i < translations.length; i++) {
+        let sup = translations[i]
+
+
+        sup.forEach(element => {
+            if (element.properties != undefined) {
+                const trad = new Trad(element.properties.language, element.properties.fullLemma)
+                addTrad(trad)
+
+            } else {
+                element.forEach(el => {
+                    const trad = new Trad(el.properties.language, el.properties.fullLemma)
+                    addTrad(trad)
+
+                });
+
             }
-        }
-
-
-
-        const trad = new Trad(element.language, element.gloss, category)
-        addTrad(trad)
+        });
     }
-
-    console.log("length", trads_array.length)
     return trads_array
 }
 
@@ -276,7 +288,7 @@ const trads = async(word, id, langs, limit) => {
 //prende le relazioni
 
 const characteristics = async(word, id, lang, limit) => {
-    relations_array.length = 0;
+    relations_array = [];
     const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY;
     try {
         let array = [];
@@ -315,7 +327,7 @@ const characteristics = async(word, id, lang, limit) => {
             }
 
             supChar(array, arrayPointers, 0).then((result) => {
-                console.log("result", result)
+
                 resolve(result)
             })
         })

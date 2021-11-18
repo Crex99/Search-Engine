@@ -53,6 +53,8 @@ const all = async(req, res) => {
 }
 
 const imgs = async(req, res) => {
+
+    req.body.imgs = true;
     let sensitive = true;
     let limit = DEFAULT_LIMIT
 
@@ -61,16 +63,25 @@ const imgs = async(req, res) => {
     }
     if (req.body.limit != undefined) {
         limit = req.body.limit
+    } else {
+        req.body.limit = limit
     }
 
-    if (req.nody.word != undefined && req.body.lang != undefined) {
-        let imgs = await wikiMethods.searchImgs(res, req.body.word, req.body.lang, sensitive, limit);
+    if (req.body.word != undefined && req.body.lang != undefined) {
 
-        let response = new Response(true, "discovered images", { source: "WIKIDATA", inf: imgs })
+        let response = new Response(true, "discovered images")
+        let imgs = ""
+        imgs = await wikiMethods.searchImgs(res, req.body.word, req.body.lang, sensitive, limit);
 
-        imgs = await babelMethods.senses(res, req.body.word, req.body.lang, sensitive, limit, req.body.pos, req.body.relation, req.body.synonyms, req.body.emote, true)
+        response.addData({ source: "WIKIDATA", inf: imgs })
+
+        imgs = await babelMethods.senses({...req.body })
 
         response.addData({ source: "BABELNET", inf: imgs })
+
+        imgs = await dbPediaMethods.images(req.body.word, req.body.lang);
+
+        response.addData({ source: "DBPEDIA", inf: imgs })
 
         res.send(response)
     } else {
@@ -96,13 +107,17 @@ const trads = async(req, res) => {
     }
 
     if (req.body.langs != undefined && req.body.lang != undefined && req.body.word != undefined) {
-        let trads = await wikiMethods.translations(res, req.body.word, req.body.lang, req.body.langs, sensitive, limit)
 
-        let response = new Response(true, "discovered translations", { source: "WIKIDATA", inf: trads })
+        let response = new Response(true, "discovered translations")
 
-        trads = await conceptMethods.trads(req.body.word, req.body.lang, req.body.langs, limit)
+        let trads = ""
+            //trads = await wikiMethods.translations(res, req.body.word, req.body.lang, req.body.langs, sensitive, limit)
 
-        response.addData({ source: "CONCEPTNET", inf: trads })
+        response.addData({ source: "WIKIDATA", inf: trads })
+
+        //trads = await dbPediaMethods.translations(req.body.word, req.body.lang, req.body.langs)
+
+        response.addData({ source: "DBPEDIA", inf: trads })
 
         trads = await babelMethods.senses({...req.body })
 
@@ -116,9 +131,9 @@ const trads = async(req, res) => {
 
 const senses = async(req, res) => {
 
-    if (req.body.sensitive == undefined) {
+    /*if (req.body.sensitive == undefined) {
         req.body.sensitive = true
-    }
+    }*/
 
     if (req.body.limit == undefined) {
         req.body.limit = DEFAULT_LIMIT
@@ -128,12 +143,29 @@ const senses = async(req, res) => {
     req.body.emote = undefined;
     req.body.imgs = false;
     req.body.pos = undefined;
+    req.body.synonyms = undefined
 
     if (req.body.word == undefined || req.body.lang == undefined) {
         res.send(new Response(false, "paramethers not valids"))
     } else {
-        const senses = await babelMethods.senses({...req.body });
-        res.send(new Response(true, "discovered senses", { source: "BABELNET", inf: senses }))
+
+        let response = new Response(true, "discovered senses");
+
+        let senses = ""
+        senses = await babelMethods.senses({...req.body });
+        response.addData({ source: "BABELNET", inf: senses })
+
+        senses = await wikiMethods.searchByName(req.body.word, req.body.lang, req.body.sensitive, req.body.limit)
+
+        response.addData({ source: "WIKIDATA", inf: senses })
+
+        senses = await dbPediaMethods.description(req.body.word, req.body.lang, req.body.sensitive)
+        response.addData({ source: "DBPEDIA", inf: senses })
+
+        senses = await dbNaryMethods.senses(req.body.word, req.body.lang, req.body.limit)
+        response.addData({ source: "DBNARY", inf: senses })
+        res.send(response)
+
     }
 
 }
@@ -146,8 +178,11 @@ const relations = async(req, res) => {
     if (req.body.word == undefined || req.body.lang == undefined) {
         res.send(new Response(false, "paramethers not valids"))
     } else {
-        let relations = await conceptMethods.assertions(res, req.body.word, req.body.lang, sensitive)
-        let response = new Response(true, "discovered relations", { source: "CONCEPTNET", inf: relations })
+
+        let response = new Response(true, "discovered relations")
+        let relations = ""
+        relations = await conceptMethods.assertions(res, req.body.word, req.body.lang, sensitive)
+        response.addData({ source: "CONCEPTNET", inf: relations })
 
         req.body.relations = true
 
@@ -158,6 +193,9 @@ const relations = async(req, res) => {
         relations = await babelMethods.senses({...req.body })
 
         response.addData({ source: "BABELNET", inf: relations })
+
+        relations = await dbNaryMethods.relations(req.body.word, req.body.lang, req.body.limit)
+        response.addData({ source: "DBNARY", inf: relations })
         res.send(response)
     }
 }
@@ -167,26 +205,64 @@ const emoticons = async(req, res) => {
     if (req.body.word == undefined || req.body.lang == undefined) {
         res.send(new Response(false, "paramethers not valids"))
     } else {
-        let emotes = await conceptMethods.emoticons(req.body.word, req.body.lang)
 
-        let response = new Response(true, "discovered emoticons", { source: "CONCEPTNET", inf: emotes })
+        let emotes = ""
+        emotes = await conceptMethods.emoticons(req.body.word, req.body.lang)
+
+        let response = new Response(true, "discovered emoticons");
+
+        response.addData({ source: "CONCEPTNET", inf: emotes })
 
         req.body.emote = true
-        req.body.synonyms = true
+        req.body.langs = undefined
 
         if (req.body.limit == undefined) {
             req.body.limit = DEFAULT_LIMIT
         }
 
-        console.log(req.body)
-
         emotes = await babelMethods.senses({...req.body })
-        console.log(emotes)
 
         response.addData({ source: "BABELNET", inf: emotes })
+
+        emotes = await wikiMethods.emotes(req.body.word, req.body.lang, req.body.limit, req.body.sensitive)
+
+        response.addData({ source: "WIKIDATA", inf: emotes })
         res.send(response)
     }
 
+}
+
+const synonyms = async(req, res) => {
+    if (req.body.word == undefined || req.body.lang == undefined) {
+        res.send(new Response(false, "paramethers not valids"))
+    } else {
+        req.body.synonyms = true
+        if (req.body.limit == undefined) {
+            req.body.limit = DEFAULT_LIMIT
+        }
+
+        req.body.langs = undefined
+
+        let syns = "";
+        let response = new Response(true, "retrieved synonyms")
+
+        syns = await babelMethods.senses({...req.body })
+
+        response.addData({ source: "BABELNET", inf: syns })
+
+        syns = await wikiMethods.searchSynonyms(req.body.word, req.body.lang, req.body.limit)
+
+        response.addData({ source: "WIKIDATA", inf: syns })
+
+        syns = await dbPediaMethods.synonyms(req.body.word, req.body.lang)
+
+        response.addData({ source: "DBPEDIA", inf: syns })
+
+        syns = await dbNaryMethods.synonyms(req.body.word, req.body.lang, req.body.limit)
+
+        response.addData({ source: "DBNARY", inf: syns })
+        res.send(response)
+    }
 }
 
 module.exports = {
@@ -195,5 +271,6 @@ module.exports = {
     trads: trads,
     imgs: imgs,
     relations: relations,
-    emoticons: emoticons
+    emoticons: emoticons,
+    synonyms: synonyms
 }

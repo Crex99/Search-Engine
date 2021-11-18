@@ -1,10 +1,10 @@
 const Trad = require("./Trad")
 
 const response = class Response {
-    constructor(succes, message, object) {
+    constructor(succes, message) {
         this.succes = succes
         this.message = message
-        this.data = [object]
+        this.data = []
     }
 
     addData(data) {
