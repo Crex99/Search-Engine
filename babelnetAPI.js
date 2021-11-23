@@ -1,10 +1,9 @@
 const axios = require('axios');
 const functions = require("./commonFeauters")
-const { formatWord } = require('./commonFeauters');
 const endpointUrl = 'https://babelnet.org/sparql/';
-const KEY = "69b0ba73-de64-4cee-a700-c2005da7ed66";
-const KEY2 = "f82361e3-a269-453f-a1ea-a294233c2e71";
-const KEY3 = "e7849be2-f543-4c17-afef-24d9a5e9abbe"
+const KEY2 = "69b0ba73-de64-4cee-a700-c2005da7ed66";
+const KEY = "f82361e3-a269-453f-a1ea-a294233c2e71";
+const KEY3 = "e7849be2-f543-4c17-afef-24d9a5e9abbe";
 const Sense = require("./Classes/Sense");
 const Trad = require('./Classes/Trad');
 
@@ -140,14 +139,13 @@ const informations = async(word, id, b, syn, limit) => {
 
 //ritorna i senses di una data parola in input(word) 
 const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, emote, imgs, langs }) => {
-
+    let outs = []
     let array = []
     lang = functions.formatLang2High(lang);
     let url = "";
 
     if (langs != undefined) {
         langs = langs.split(",")
-        langs = langs.slice(0, 3);
     }
     if (pos == undefined) {
         url = "https://babelnet.io/v6/getSenses?lemma=" + word + "&searchLang=" + lang + "&key=" + KEY;
@@ -160,54 +158,77 @@ const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, e
         let out = response.data;
 
         for (let i = 0; i < limit; i++) {
-
             if (functions.control(word, sensitive, out[i].properties.fullLemma) == true) {
                 if (out[i].properties.fullLemma.includes(word)) {
-                    if (relations == true) {
+                    if (outs.includes(out[i].properties.synsetID.id) == false) {
 
-                        const final = await characteristics(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
+                        outs.push(out[i].properties.synsetID.id)
 
-                        const sense = new Sense(out[i].properties.fullLemma);
+                        if (relations == true) {
 
-                        sense.setRelations(final)
+                            const final = await characteristics(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
 
-                        array.push(sense)
+                            const sense = new Sense(out[i].properties.fullLemma);
 
+                            sense.setRelations(final)
 
-                    } else if (imgs == true) {
-
-                        const sense = new Sense(out[i].properties.fullLemma);
-
-                        const final = await searchImgs(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
-                        sense.images = final
-
-                        array.push(sense)
-
-                    } else if (langs != undefined) {
-                        let sense = new Sense(out[i].properties.fullLemma);
-                        let final = await trads(out[i].properties.fullLemma, out[i].properties.synsetID.id, langs, limit)
-                        sense.trads = final
-                        array.push(sense)
-                    } else if (emote == true) {
-
-                        const sense = new Sense(out[i].properties.fullLemma)
-
-                        const final = await emotes(out[i].properties.synsetID.id, lang)
-                        if (final.length > 0) {
-                            sense.emotes = final
                             array.push(sense)
-                        }
 
-                    } else if (synonyms == true) {
 
-                        const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, limit);
-                        if (final.synonyms.length > 0) {
+                        } else if (imgs == true) {
+
+                            const sense = new Sense(out[i].properties.fullLemma);
+
+                            const final = await searchImgs(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
+                            sense.images = final
+
+                            array.push(sense)
+
+                        } else if (langs != undefined) {
+                            let sense = new Sense(out[i].properties.fullLemma);
+                            let myLangs = []
+                            let final = ""
+                            for (let j = 0; j < langs.length; j += 3) {
+                                final = ""
+                                myLangs = []
+                                myLangs.push(langs[j])
+                                if (j + 1 < langs.length) {
+                                    myLangs.push(langs[j + 1])
+                                }
+                                if (j + 2 < langs.length) {
+                                    myLangs.push(langs[j + 2])
+                                }
+
+                                final = await trads(out[i].properties.fullLemma, out[i].properties.synsetID.id, myLangs, limit)
+                                if (final != null) {
+                                    sense.addTrads(final)
+                                }
+                            }
+                            if (sense.trads.length > 0) {
+                                array.push(sense)
+                            }
+
+                        } else if (emote == true) {
+
+                            const sense = new Sense(out[i].properties.fullLemma)
+
+                            const final = await emotes(out[i].properties.synsetID.id, lang)
+                            if (final.length > 0) {
+                                sense.emotes = final
+                                array.push(sense)
+                            }
+
+                        } else if (synonyms == true) {
+
+                            const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, limit);
+                            if (final.synonyms.length > 0) {
+                                array.push(final)
+                            }
+                        } else {
+
+                            const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, limit);
                             array.push(final)
                         }
-                    } else {
-
-                        const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, limit);
-                        array.push(final)
                     }
                 }
             }
@@ -253,9 +274,17 @@ const searchImgs = (sense, id, lang, limit) => {
 const trads = async(word, id, langs, limit) => {
     trads_array = []
 
-    const url = "https://babelnet.io/v6/getSynset?id=" + id + "&targetLang=" + functions.formatLang2High(langs[0]) + "&targetLang=" + functions.formatLang2High(langs[1]) + "&targetLang=" + functions.formatLang2High(langs[2]) + "&key=" + KEY
+    let midString = ""
+
+    for (let i = 0; i < langs.length && i < 3; i++) {
+        midString += "&targetLang=" + functions.formatLang2High(langs[i])
+    }
+    const url = "https://babelnet.io/v6/getSynset?id=" + id + midString + "&key=" + KEY
+
+
 
     const response = await axios.get(url);
+
 
     let translations = response.data.translations
 
@@ -278,7 +307,9 @@ const trads = async(word, id, langs, limit) => {
             }
         });
     }
-    return trads_array
+    if (trads_array.length > 0) {
+        return trads_array
+    }
 }
 
 

@@ -2,7 +2,7 @@ const SparqlClient = require("sparql-http-client")
 const ParsingClient = require('sparql-http-client/ParsingClient')
 const functions = require("./commonFeauters")
 const endpointUrl = 'https://dbpedia.org/sparql'
-const qr = (word, lang, sensitive, langs, synonyms, images) => {
+const qr = (word, lang, sensitive, trad, synonyms, images) => {
     //inserire qui la SPARQLE QUERY
 
     if (sensitive == true) {
@@ -15,31 +15,21 @@ const qr = (word, lang, sensitive, langs, synonyms, images) => {
           FILTER ( LANG ( ?word ) ="` + lang + `" )
           FILTER(lcase(str(?word)) = "` + word.toLowerCase() + `")
        }LIMIT 20`
-    } else if (langs != undefined) {
+    } else if (trad != undefined) {
 
         let query = `SELECT  distinct  ?label
         WHERE{
-             {
-                ?item rdfs:label "` + word + `" @` + lang + `;
+             
+                ?item rdfs:label "` + word + `"@` + lang + `;
                 rdfs:label ?label.
-                FILTER ( LANG ( ?label ) = '` + lang + `' )
+                FILTER(LANG(?label)="` + trad + `")
             } `
-        langs.forEach(element => {
-            query = query + `
-                UNION{
-                    ?item rdfs:label "` + word + `" @` + lang + `;
-                rdfs:label ?label.
-                FILTER ( LANG ( ?label ) = '` + element + `' )
-                }
-                `
-        });
-        query = query + `}`
         return query
 
     } else if (synonyms == true) {
         return `select distinct   ?label
         where {
-        ?word rdfs:label "Cat"@en;
+        ?word rdfs:label "` + word + `"@` + lang + `;
         dbp:synonyms ?label.
         }  `
     } else if (images == true) {
@@ -96,18 +86,25 @@ const translations = async(word, lang, langs) => {
 
     let out = []
     let current = ""
-    const query = qr(word, lang, undefined, langs);
-    const bindings = await client.query.select(query)
-    let i = 0;
-    return new Promise((resolve) => {
+
+    for (let i = 0; i < langs.length; i++) {
+        let trad = langs[i]
+        const query = qr(word, lang, undefined, trad);
+        const bindings = await client.query.select(query)
         bindings.forEach(row =>
             Object.entries(row).forEach(([key, value]) => {
                 current = (` ${value.value}`)
 
-                out.push({ lang: langs[i], word: current })
-                i++
+                out.push({ lang: trad, word: current })
+
+
             })
         )
+    }
+
+    return new Promise((resolve) => {
+
+        console.log("out", out)
 
         resolve(out)
 

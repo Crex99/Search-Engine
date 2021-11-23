@@ -251,7 +251,11 @@ const translations = (res, word, lang, langs, sensitive, max) => {
                     i++;
                 });
                 resolve(out)
+            }).catch((err) => {
+                resolve(err)
             })
+        }).catch((err) => {
+            resolve(err)
         })
     })
 }

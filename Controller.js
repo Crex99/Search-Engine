@@ -113,14 +113,13 @@ const trads = async(req, res) => {
         let trads = ""
             //trads = await wikiMethods.translations(res, req.body.word, req.body.lang, req.body.langs, sensitive, limit)
 
-        response.addData({ source: "WIKIDATA", inf: trads })
+        //response.addData({ source: "WIKIDATA", inf: trads })
 
         //trads = await dbPediaMethods.translations(req.body.word, req.body.lang, req.body.langs)
 
-        response.addData({ source: "DBPEDIA", inf: trads })
+        //response.addData({ source: "DBPEDIA", inf: trads })
 
         trads = await babelMethods.senses({...req.body })
-
         response.addData({ source: "BABELNET", inf: trads })
         res.send(response)
     } else {

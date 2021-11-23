@@ -45,6 +45,10 @@ const sense = class Sense {
     setSynonyms(synonyms) {
         this.synonyms = synonyms
     }
+
+    addTrads(trads) {
+        this.trads.push(trads)
+    }
 }
 
 module.exports = sense
