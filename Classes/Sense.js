@@ -1,12 +1,13 @@
 const sense = class Sense {
-    constructor(name, synonyms) {
+    constructor(name) {
         this.name = name
         this.relations = []
         this.descriptions = []
-        this.synonyms = synonyms
+        this.synonyms = []
         this.images = []
         this.trads = []
         this.emotes = []
+		this.hierarchy=""
     }
 
     getName() {
@@ -45,6 +46,10 @@ const sense = class Sense {
     setSynonyms(synonyms) {
         this.synonyms = synonyms
     }
+addSynonyms(synonyms){
+this.synonyms=this.synonyms.concat(synonyms)
+
+}
 
     addTrads(trads) {
         this.trads.push(trads)

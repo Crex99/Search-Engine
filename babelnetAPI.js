@@ -1,13 +1,15 @@
 const axios = require('axios');
 const functions = require("./commonFeauters")
 const endpointUrl = 'https://babelnet.org/sparql/';
-const KEY2 = "69b0ba73-de64-4cee-a700-c2005da7ed66";
-const KEY = "f82361e3-a269-453f-a1ea-a294233c2e71";
+const KEY = "69b0ba73-de64-4cee-a700-c2005da7ed66";
+const KEY2 = "f82361e3-a269-453f-a1ea-a294233c2e71";
 const KEY3 = "e7849be2-f543-4c17-afef-24d9a5e9abbe";
 const Sense = require("./Classes/Sense");
 const Trad = require('./Classes/Trad');
+const { hierarchy } = require('./Controller');
 
 const SYNONYM = "POTENTIAL_NEAR_SYNONYM_OR_WORSE"
+const HIGHQUALITY ="HIGH_QUALITY"
 
 let synonyms = []
 let trads_array = []
@@ -59,13 +61,19 @@ const addTrad = (trad) => {
 
 const addSynonim = (string) => {
     string = string.toLowerCase()
+	string=string.split(" ").join("")
+	string=string.split("_").join(" ")
     if (synonyms.length == 0) {
         synonyms.push(string);
     }
-
-    if (synonyms.includes(string) == false) {
-        synonyms.push(string)
-    }
+let verify=false
+for(let i=0;i<synonyms.length;i++){
+if(synonyms[i]==string){
+verify=true
+}
+}
+if(verify==false){
+synonyms.push(string)}
 }
 
 
@@ -82,10 +90,11 @@ const emotes = async(id, b) => {
             out.senses.forEach(element => {
                 if (element.properties.lemma.type == SYNONYM) {
                     if (element.properties.lemma.lemma.length == 2) {
-                        array.push(element.properties.lemma.lemma)
+						if (element.properties.lemma.lemma.toUpperCase() == element.properties.lemma.lemma.toLowerCase()){
+							array.push(element.properties.lemma.lemma)
+						}
                     }
                 }
-
             });
             resolve(array);
         })
@@ -110,26 +119,22 @@ const informations = async(word, id, b, syn, limit) => {
                 for (let i = 0; i < limit && i < array.length; i++) {
 
                     let element = array[i]
-                    if (element.properties.lemma.type == SYNONYM) {
-
-
+                    if (element.properties.lemma.type == HIGHQUALITY) {
                         addSynonim(element.properties.lemma.lemma)
                     }
                 }
+				resolve(synonyms)
             }
             let glosses = out.glosses;
-            let sense = "";
-            if (word != undefined) {
-                sense = new Sense(word);
-                sense.setSynonyms(synonyms);
-            }
+            let des=[]
             if (syn != true) {
-                for (let i = 0; i < limit && i < glosses.length; i++) {
-                    let element = glosses[i]
-                    sense.addDescription(element.gloss)
-                }
+
+glosses.forEach(element => {
+	des.push(element.gloss)
+});
+				resolve(des);
             }
-            resolve(sense);
+            
         })
     } catch (error) {
         console.log(error);
@@ -138,7 +143,8 @@ const informations = async(word, id, b, syn, limit) => {
 
 
 //ritorna i senses di una data parola in input(word) 
-const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, emote, imgs, langs }) => {
+const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, emote, imgs, langs,hierarchy }) => {
+
     let outs = []
     let array = []
     lang = functions.formatLang2High(lang);
@@ -147,6 +153,7 @@ const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, e
     if (langs != undefined) {
         langs = langs.split(",")
     }
+
     if (pos == undefined) {
         url = "https://babelnet.io/v6/getSenses?lemma=" + word + "&searchLang=" + lang + "&key=" + KEY;
     } else {
@@ -156,10 +163,53 @@ const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, e
     try {
         const response = await axios.get(url);
         let out = response.data;
-
-        for (let i = 0; i < limit; i++) {
+		console.log("out", out.length)
+        for (let i = 0; i < out.length; i++) {
+			if(out[i]!=undefined){
             if (functions.control(word, sensitive, out[i].properties.fullLemma) == true) {
                 if (out[i].properties.fullLemma.includes(word)) {
+ 					if (synonyms == true) {
+						let sense=""
+						let verify=false
+						if(array.length===0){
+							sense = new Sense(out[i].properties.fullLemma)
+							array.push(sense)
+						}else{
+
+						for(let k=0;k<array.length;k++){
+							if (array[k].name === out[i].properties.fullLemma){
+								verify=true
+								sense=array[k]
+							}
+						}
+						if(verify===false){
+							sense = new Sense(out[i].properties.fullLemma)
+							array.push(sense)
+							}
+						}
+					const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, limit);
+
+
+
+if(final.length>=limit){
+final.length=limit
+	sense.addSynonyms(final)
+	for (let k = 0; k < array.length; k++) {
+		if (array[k].name === sense.name) {
+			array[k] = sense
+		}
+	}
+return array
+}else{
+limit=limit-final.length
+	sense.addSynonyms(final)
+	for (let k = 0; k < array.length; k++) {
+		if (array[k].name === sense.name) {
+			array[k] = sense
+		}
+	}
+}
+				}
                     if (outs.includes(out[i].properties.synsetID.id) == false) {
 
                         outs.push(out[i].properties.synsetID.id)
@@ -170,9 +220,16 @@ const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, e
 
                             const sense = new Sense(out[i].properties.fullLemma);
 
-                            sense.setRelations(final)
-
-                            array.push(sense)
+							if(final.length>=limit){
+								final.length=limit
+								sense.setRelations(final)
+								array.push(sense)
+								return array
+							}else{
+								limit=limit-final.length
+								sense.setRelations(final)
+								array.push(sense)
+							}
 
 
                         } else if (imgs == true) {
@@ -180,14 +237,24 @@ const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, e
                             const sense = new Sense(out[i].properties.fullLemma);
 
                             const final = await searchImgs(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, limit)
-                            sense.images = final
 
-                            array.push(sense)
+						if(final.length>=limit){
+						final.length=limit
+							sense.images = final
+							array.push(sense)
+						return array
+						}else if(final.length>0){
+						limit=limit-final.length
+						sense.images=final
+						array.push(sense)
+						}
+                            
 
                         } else if (langs != undefined) {
                             let sense = new Sense(out[i].properties.fullLemma);
                             let myLangs = []
                             let final = ""
+							let arr=[]
                             for (let j = 0; j < langs.length; j += 3) {
                                 final = ""
                                 myLangs = []
@@ -200,38 +267,83 @@ const senses = async({ word, lang, sensitive, limit, pos, relations, synonyms, e
                                 }
 
                                 final = await trads(out[i].properties.fullLemma, out[i].properties.synsetID.id, myLangs, limit)
+
                                 if (final != null) {
-                                    sense.addTrads(final)
+									arr=arr.concat(final)
                                 }
                             }
-                            if (sense.trads.length > 0) {
-                                array.push(sense)
-                            }
+
+							console.log("arr",arr)
+								
+							if(arr.length>=limit){
+							arr.length=limit
+							sense.trads=arr
+							array.push(sense)
+							return array
+							} else if(arr.length > 0) {
+								sense.trads=arr
+								array.push(sense)
+								limit=limit-arr.length
+							}
+                            
 
                         } else if (emote == true) {
 
                             const sense = new Sense(out[i].properties.fullLemma)
 
                             const final = await emotes(out[i].properties.synsetID.id, lang)
-                            if (final.length > 0) {
+                            if (final.length >= limit) {
+								final.length=limit
                                 sense.emotes = final
                                 array.push(sense)
-                            }
+								return array
+                            }else if(final.length>0){
+								limit=limit-final.length
+								sense.emotes = final
+								array.push(sense)
+							}
 
-                        } else if (synonyms == true) {
+                        } else if(hierarchy==true){
+							const sense = new Sense(out[i].properties.fullLemma)
+
+							const final = await hierarchies(out[i].properties.synsetID.id, lang)
+
+						if(final.length>=limit){
+							final.length=limit
+							sense.hierarchy = final
+							array.push(sense)
+							return array
+						}else if(final.length>0){
+							limit=limit-final.length
+							sense.hierarchy = final
+							array.push(sense)
+						}
+						}else if(synonyms!=true){
+
+							const sense = new Sense(out[i].properties.fullLemma)
 
                             const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, limit);
-                            if (final.synonyms.length > 0) {
-                                array.push(final)
-                            }
-                        } else {
 
-                            const final = await informations(out[i].properties.fullLemma, out[i].properties.synsetID.id, lang, synonyms, limit);
-                            array.push(final)
+							final.forEach(element => {
+								sense.addDescription(element)
+							});
+							if (final.length > 0) {
+								array.push(sense)
+							}
+
+if(sense.descriptions.length>=limit){
+
+console.log(sense)
+sense.descriptions.length=limit
+return array
+}else{
+limit=limit-sense.descriptions.length
+}
                         }
                     }
                 }
             }
+		}
         }
         return array;
 
@@ -357,10 +469,13 @@ const characteristics = async(word, id, lang, limit) => {
                 }
             }
 
-            supChar(array, arrayPointers, 0).then((result) => {
+console.log("array",array)
+resolve(arrayPointers)
+
+            /*supChar(array, arrayPointers, 0).then((result) => {
 
                 resolve(result)
-            })
+            })*/
         })
     } catch (error) {
         console.log(error);
@@ -388,6 +503,64 @@ const supChar = async(ids, relatives, i) => {
 
 }
 
+const hierarchies=(id,limit)=>{
+	return new Promise((resolve)=>{
+
+		const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY;
+axios.get(url).then(async(result)=>{
+
+let ids=[]
+
+result.data.forEach(element => {
+
+	if (element.pointer.relationGroup=="HYPERNYM"||element.pointer.relationGroup=="HYPONYM"){
+ids.push(element.target)}
+});
+
+	let results_ids = []
+	let results = []
+
+resolve(hierSup(ids,0,results_ids,results))
+	
+
+})
+	
+	})
+}
+
+const hierSup=(arr,i,ids,results)=>{
+
+return new Promise((resolve)=>{
+	const url = "https://babelnet.io/v6/getSynset?id=" + arr[i] + "&key=" + KEY;
+
+axios.get(url).then((result)=>{
+	if (result.data.senses != undefined) {
+		result.data.senses.forEach(element => {
+			verify = false
+			ids.forEach(elementIn => {
+				if (elementIn == element.properties.synsetID.id) {
+					verify = true
+				}
+			});
+
+			if (verify == false) {
+				ids.push(element.properties.synsetID.id)
+				if (results.includes(element.properties.fullLemma.split("_").join(" ")) == false) {
+
+					results.push(element.properties.fullLemma.split("_").join(" "))
+				}
+			}
+		})
+	}
+	if (i < arr.length - 1) {
+		resolve(hierSup(arr, i + 1, ids, results))
+	} else {
+		resolve(results)
+	}
+})
+})
+}
+
 
 
 module.exports = {
@@ -398,8 +571,8 @@ module.exports = {
     trads: trads
 
 };
-
+	
 /*
  *BabelNet potrebbe essere facilmente usato per trovare hypernym, hyponym , sinonimi e altro anche in più lingue.
  *Bisogna stare attenti a non eccedere il limite di richieste giornaliere
- */
+*/

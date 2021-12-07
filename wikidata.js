@@ -1,3 +1,4 @@
+const Node=require("./Classes/hierarchyTree")
 const axios = require('axios');
 const functions = require("./commonFeauters")
 const WBK = require('wikibase-sdk')
@@ -8,104 +9,27 @@ const wdk = WBK({
 })
 const endpointUrl = 'https://query.wikidata.org/sparql'
 
-const Trad = require("./Classes/Trad")
+const Trad = require("./Classes/Trad");
+const TripleToQuadTransform = require("rdf-transform-triple-to-quad");
 
 const SUBCLASS = "P279"
 const IMGS = "P18"
 const SYMBOL = "P487"
 
+let treeLimit=0
+
+let hierarchyTree=""
+
 //subClasses è una matrice dove in ogni riga contiene una sottoclasse con gli elementi che contiene la stessa
 //l'elemento 0 di ogni riga è il nome della sottoclasse
-let subClasses = [];
-
-const addToSubClasses = (subClass, item) => {
-    if (subClasses.length == 0) {
-        subClasses.push([subClass, item]);
-    } else {
-        let verify = false;
-        subClasses.forEach(element => {
-            if (element[0] == subClass) {
-                verify = true;
-                element.push(item);
-            }
-        });
-        if (verify == false) {
-            subClasses.push([subClass, item]);
-        }
-    }
-}
-
-const searchPropertyName = (id, lang) => {
-    return new Promise((resolve) => {
-        datas = [id]
-        langs = [lang]
-        const url = wdk.getEntities({
-            ids: datas,
-            languages: langs, // returns all languages if not specified
-            //props: [ 'info', 'claims' ], // returns all data if not specified
-            format: 'json', // defaults to json
-            redirections: false // defaults to true
-        })
-
-        axios.get(url).then((response) => {
-            datas.forEach(d => {
-                langs.forEach(l => {
-                    //prende la label legata all'id cercato
-                    let label = response.data.entities[id].labels[l].value;
-                    //console.log("label",label)
-                    resolve(label);
-                });
-            });
-        })
-    })
-}
-const searchSubClasses = (res, datas, langs, last) => {
-    const quest = async(a, c, array, i, last) => {
-        if (array != undefined) {
-            if (i == array.length) {
-                if (last == true) {
-                    //console.log("MATRICE",subClasses)
-                }
-            } else {
-                let subclass = await searchPropertyName(array[i].mainsnak.datavalue.value.id, c); //prende la label relativa alla sottoclasse 
-                //aggiunge alla matrice delle sottoclassi , la label trovata (a) e le sue sottoclassi di appartenenza
-                addToSubClasses(subclass, a)
-                quest(a, c, array, i + 1, last);
-                console.log("MATRICE", subClasses)
-            }
-        } else {
-            if (last == true) {
-                //console.log("MATRICE",subClasses)
-            }
-        }
-    }
-
-    //datas=["Q146"]
-    //langs=["en"]
-    const url = wdk.getEntities({
-        ids: datas,
-        languages: langs, // returns all languages if not specified
-        //props: [ 'info', 'claims' ], // returns all data if not specified
-        format: 'json', // defaults to json
-        redirections: false // defaults to true
-    })
-    axios.get(url).then((response) => {
-        datas.forEach(data => {
-            langs.forEach(lang => {
-                //prende la label legata all'id cercato
-                console.log("IMMAGGINI", response.data.entities[data].claims[IMGS]);
-                let name = (response.data.entities[data].labels[lang].value);
-                //prende gli id delle sottoclassi dell'id cercato
-                let array = response.data.entities[data].claims[SUBCLASS];
-                quest(name, lang, array, 0, last)
-            });
-        });
-    })
-}
 
 const searchById = (word, id, lang) => {
 
     return new Promise((resolve) => {
+
+		if(id.length==0){
+		resolve(id)
+		}
 
         const url = wdk.getEntities({
             ids: id,
@@ -121,9 +45,11 @@ const searchById = (word, id, lang) => {
 
             id.forEach(element => {
                 let label = response.data.entities[element].labels[lang].value
-                let category = response.data.entities[element].descriptions[lang].value
-                if (label.includes(word) == true) {
-                    out.push({ label: label, category: category })
+				console.log("label",label)
+                let category = response.data.entities[element].descriptions[lang]
+				console.log("category",category)
+                if (label.includes(word) == true&&category!=undefined) {
+                    out.push({ label: label, category: category.value })
                 }
             });
             resolve(out)
@@ -135,6 +61,7 @@ const searchById = (word, id, lang) => {
 
 
 const searchByName = (word, lang, sensitive, limit) => {
+console.log("word",word)
         return new Promise((resolve) => {
             lang = functions.formatLang2low(lang);
             const url = wdk.searchEntities({
@@ -176,7 +103,8 @@ const searchByName = (word, lang, sensitive, limit) => {
                     resolve(result)
 
                 })
-            })
+            }).catch((err)=>{
+				console.log(err)})
         })
     }
     /**
@@ -224,13 +152,13 @@ const translations = (res, word, lang, langs, sensitive, max) => {
                 ids: search_items,
                 format: 'json',
                 languages: array_langs,
-                limit: max
             })
             let current = ""
             let out = [];
             let i = 0;
             axios.get(url0).then((response) => {
-                search_items.forEach(entity => {
+				for(let k=0;k<search_items.length;k++){
+                	let entity=search_items[k]
                     let trads = { word: search_labels[i], trads: [] }
                     array_langs.forEach(l => {
 
@@ -247,9 +175,17 @@ const translations = (res, word, lang, langs, sensitive, max) => {
                             }
                         }
                     });
-                    out.push(trads)
+					if(trads.trads.length>=max){
+					trads.trads.length=max
+					out.push(trads)
+					k=search_items.length
+					resolve(out)
+					}else{
+					max=max-trads.trads.length;
+					out.push(trads)
+					}
                     i++;
-                });
+                }
                 resolve(out)
             }).catch((err) => {
                 resolve(err)
@@ -390,7 +326,6 @@ const emotes = (word, lang, limit, sensitive) => {
 }
 
 const searchSynonyms = (word, lang, limit) => {
-
     let out = []
     return new Promise((resolve) => {
         lang = functions.formatLang2low(lang);
@@ -414,31 +349,266 @@ const searchSynonyms = (word, lang, limit) => {
                 }
             }
 
-            const url2 = wdk.getEntities({
-                ids: ids,
-                languages: [lang],
-                format: "json"
-            })
+            if (ids.length == 0) {
 
-            axios.get(url2).then((response) => {
+                resolve(ids)
+            } else {
 
-                for (let i = 0; i < ids.length; i++) {
-                    let id = ids[i]
-                    let synonyms = response.data.entities[id].aliases[lang]
-                    if (synonyms != undefined) {
-                        let syns = []
-                        synonyms.forEach(element => {
-                            syns.push(element.value)
-                        });
-                        out.push({ label: search_items[i].label, description: search_items[i].description, synonyms: syns })
+
+
+                const url2 = wdk.getEntities({
+                    ids: ids,
+                    languages: [lang],
+                    format: "json"
+                })
+
+                axios.get(url2).then((response) => {
+
+                    for (let i = 0; i < ids.length; i++) {
+                        let id = ids[i]
+                        let synonyms = response.data.entities[id].aliases[lang]
+                        if (synonyms != undefined) {
+                            let syns = []
+                            synonyms.forEach(element => {
+                                syns.push(element.value)
+                            });
+if(syns.length>=limit){
+syns.length=limit
+	out.push({ label: search_items[i].label, description: search_items[i].description, synonyms: syns })
+resolve(out)
+i=ids.length
+}else{
+limit=limit-syns.length
+	out.push({ label: search_items[i].label, description: search_items[i].description, synonyms: syns })
+}
+                        }
                     }
-                }
-                resolve(out)
-            })
+
+                    resolve(out)
+                })
+            }
         })
     })
 
 }
+
+const searchSubClasses=(word,lang,limit)=>{
+
+return new Promise((resolve)=>{
+
+	lang = functions.formatLang2low(lang);
+	const url = wdk.searchEntities({
+		search: word,
+		format: 'json',
+		language: lang,
+		limit: limit
+	})
+
+axios.get(url).then((result)=>{
+	let items = result.data.search
+	let search_items = []
+	let ids = []
+	for (let i = 0; i < limit && i < items.length; i++) {
+		let label = " " + items[i].label + " "
+		if (label.includes(" " + word + " ")) {
+
+			search_items.push({ label: items[i].label, description: items[i].description })
+			ids.push(items[i].id)
+		}
+	}
+	limitTree = limit
+if(ids.length>0){
+	root(ids[0], 0, lang, undefined).then((result) => {
+		resolve(hierarchyTree)
+	})
+}else{
+resolve(ids)
+}
+})
+})
+}
+
+const root=(node,level,lang,nodeReal)=>{
+
+console.log(limitTree)
+
+return new Promise((resolve)=>{
+	if (limitTree <= 0) {
+		resolve(true)
+	}else{
+
+	let nodeGraph=""
+	const url = wdk.getEntities({
+		ids:[node],
+		languages: [lang],
+		format: "json"
+	})
+
+	axios.get(url).then((result)=>{
+
+		if (level == 0) {
+			limitTree--;
+			nodeGraph = new Node(result.data.entities[node].labels[lang].value)
+
+			hierarchyTree = nodeGraph
+		}else{
+			nodeGraph = nodeReal
+		}
+		
+		console.log("LEVEL "+level,result.data.entities[node].labels[lang].value)
+		let subclasses = result.data.entities[node].claims[SUBCLASS]
+
+if(subclasses.length>0){
+let children=[]
+subclasses.forEach(element => {
+if(element.mainsnak.datavalue!=undefined){
+	children.push(element.mainsnak.datavalue.value.id)
+}
+});
+
+if(children.length>0){
+	resolve(subClasses(nodeGraph, lang, children, level))
+}else{
+resolve(true)
+}
+}else{
+resolve(true)
+}
+})
+}
+})
+}
+
+const subClasses=(father,lang,children,level)=>{
+
+	return new Promise((resolve)=>{
+
+		if (limitTree <= 0) {
+			resolve(true)
+		}else{
+
+	const url = wdk.getEntities({
+		ids: children,
+		languages: [lang],
+		format: "json"
+	})
+
+		axios.get(url).then(async(result)=>{
+
+for(let i=0;i<children.length;i++){
+
+	if (limitTree <= 0) {
+		resolve(true)
+	}else{
+
+	let element=children[i]
+	let node = new Node(result.data.entities[element].labels[lang].value)
+	father.descendants.push(node)
+	limitTree--;
+if(i==children.length-1){
+	resolve(root(element, level + 1, lang,node))
+}else{
+	await root(element, level + 1, lang,node)
+}
+}
+}
+})
+	}
+})
+}
+
+
+
+
+const treeView=(tree,i)=>{
+console.log("LEVEL ",i)
+console.log("VALUE ",tree.value)
+
+tree.descendants.forEach(element => {
+	treeView(element,i+1)
+});
+}
+
+const relations=(word,lang,limit)=>{
+
+return new Promise((resolve)=>{
+	lang = functions.formatLang2low(lang);
+	const url = wdk.searchEntities({
+		search: word,
+		format: 'json',
+		language: lang,
+		limit: limit
+	})
+
+axios.get(url).then((result)=>{
+	let items = result.data.search
+	let search_items = []
+	let ids = []
+	for (let i = 0; i < limit && i < items.length; i++) {
+		let label = " " + items[i].label + " "
+		if (label.includes(" " + word + " ")) {
+
+			search_items.push({ label: items[i].label, description: items[i].description })
+			ids.push(items[i].id)
+		}
+	}
+
+if(ids.length==0){
+resolve(ids)
+}else{
+
+	const url2 = wdk.getEntities({
+		ids: ids,
+		languages: [lang],
+		props: ["claims"],
+		format: "json",
+        limit:limit
+	})
+axios.get(url2).then((result)=>{
+
+let properties=[]
+ids.forEach(id => {
+
+	let claims = result.data.entities[id].claims
+
+let i=0;
+
+	while (claims[Object.keys(claims)[i]]!=undefined){
+		claims[Object.keys(claims)[i]].forEach(element => {
+			properties.push(element.mainsnak.property)
+		})
+i++;
+}	
+});
+
+let relations=[]
+
+let url3=""
+
+properties.forEach(async(element) => {
+	url3 = wdk.getEntities({
+		ids: [element],
+		languages: [lang],
+		format: "json",
+	})
+	const result=await axios.get(url3)
+	relations.push(result.data.entities[element].labels[lang].value)
+limit--
+if(limit<=0){
+resolve(relations)
+}
+	if(relations.length==properties.length){
+resolve(relations)
+}
+});
+
+})
+}
+})
+
+})
+}
+
 
 module.exports = {
     searchByName: searchByName,
@@ -446,5 +616,7 @@ module.exports = {
     translations: translations,
     searchImgs: searchImgs,
     emotes: emotes,
-    searchSynonyms: searchSynonyms
+    searchSynonyms: searchSynonyms,
+	searchSubClasses:searchSubClasses,
+	searchRelations:relations
 }

@@ -5,11 +5,27 @@ const dbNaryMethods = require("./dbNary");
 const babelMethods = require("./babelnetAPI");
 const wikiMethods = require("./wikidata");
 const dbPediaMethods = require("./dbpedia");
+const { performance } = require('perf_hooks');
 
 const DEFAULT_LIMIT = 10
 
+
+const precise=(number)=>{
+
+number=Number(number)
+if (number > 9999) {
+            number = number.toPrecision(5)
+        } else if(number>999){
+            number = number.toPrecision(4)
+        }else{
+number=number.toPrecision(3)}
+
+return number
+}
+
 const all = async(req, res) => {
-    const out = new response();
+console.log(req)
+    /*const out = new response();
 
     let sensitive = false;
     let imgs = false;
@@ -30,7 +46,7 @@ const all = async(req, res) => {
      * langs indicates the langs that user wants to obtain a translation
      */
 
-    const senses = await babelMethods.senses(res, word, lang, sensitive, limit, pos, relation, synonyms);
+    /*const senses = await babelMethods.senses(res, word, lang, sensitive, limit, pos, relation, synonyms);
     out.addSenses(senses)
 
     out.addRelations(await conceptMethods.assertions(res, word, lang, sensitive))
@@ -48,7 +64,7 @@ const all = async(req, res) => {
 
     }
 
-    res.send(out);
+    res.send(out);*/
 
 }
 
@@ -71,17 +87,25 @@ const imgs = async(req, res) => {
 
         let response = new Response(true, "discovered images")
         let imgs = ""
+
+		const wikiStartTime=performance.now()	
         imgs = await wikiMethods.searchImgs(res, req.body.word, req.body.lang, sensitive, limit);
 
-        response.addData({ source: "WIKIDATA", inf: imgs })
+		const wikiEndTime=performance.now()
+		const wikiTime=new Number(wikiEndTime-wikiStartTime)
+        response.addData({ source: "WIKIDATA", inf: imgs ,time:precise(wikiTime)})
 
+		const babelStartTime=performance.now() 
         imgs = await babelMethods.senses({...req.body })
+		const babelEndTime=performance.now() 
+		const babelTime=new Number(babelEndTime-babelStartTime)
+        response.addData({ source: "BABELNET", inf: imgs ,time:precise(babelTime)})
 
-        response.addData({ source: "BABELNET", inf: imgs })
-
-        imgs = await dbPediaMethods.images(req.body.word, req.body.lang);
-
-        response.addData({ source: "DBPEDIA", inf: imgs })
+		const dbpStartTime=performance.now()
+        imgs = await dbPediaMethods.images(req.body.word, req.body.lang,req.body.limit);
+		const dbpEndTime=performance.now()
+		const dbpTime=new Number(dbpEndTime-dbpStartTime)
+        response.addData({ source: "DBPEDIA", inf: imgs ,time:precise(dbpTime)})
 
         res.send(response)
     } else {
@@ -111,16 +135,24 @@ const trads = async(req, res) => {
         let response = new Response(true, "discovered translations")
 
         let trads = ""
-            //trads = await wikiMethods.translations(res, req.body.word, req.body.lang, req.body.langs, sensitive, limit)
+		const wikiStartTime=performance.now()
+        trads = await wikiMethods.translations(res, req.body.word, req.body.lang, req.body.langs, sensitive, limit)
+		const wikiEndTime=performance.now()
+		const wikiTime=new Number(wikiEndTime-wikiStartTime)
+        response.addData({ source: "WIKIDATA", inf: trads ,time:precise(wikiTime)})
 
-        //response.addData({ source: "WIKIDATA", inf: trads })
+		const dbpStartTime=performance.now()
+        trads = await dbPediaMethods.translations(req.body.word, req.body.lang, req.body.langs,req.body.limit)
+		const dbpEndTime=performance.now()
+		const dbpTime=new Number(dbpEndTime-dbpStartTime)
 
-        //trads = await dbPediaMethods.translations(req.body.word, req.body.lang, req.body.langs)
+        response.addData({ source: "DBPEDIA", inf: trads ,time:precise(dbpTime)})
 
-        //response.addData({ source: "DBPEDIA", inf: trads })
-
+		const babelStartTime=performance.now()
         trads = await babelMethods.senses({...req.body })
-        response.addData({ source: "BABELNET", inf: trads })
+		const babelEndTime=performance.now()
+		const babelTime=new Number(babelEndTime-babelStartTime)
+        response.addData({ source: "BABELNET", inf: trads,time:precise(babelTime) })
         res.send(response)
     } else {
         res.send(new Response(false, "paramethers not valids"))
@@ -142,7 +174,8 @@ const senses = async(req, res) => {
     req.body.emote = undefined;
     req.body.imgs = false;
     req.body.pos = undefined;
-    req.body.synonyms = undefined
+    req.body.synonyms = undefined;
+	req.body.hierarchy=undefined;
 
     if (req.body.word == undefined || req.body.lang == undefined) {
         res.send(new Response(false, "paramethers not valids"))
@@ -151,18 +184,31 @@ const senses = async(req, res) => {
         let response = new Response(true, "discovered senses");
 
         let senses = ""
+
+        const babelStartTime=performance.now() 
         senses = await babelMethods.senses({...req.body });
-        response.addData({ source: "BABELNET", inf: senses })
+		const babelEndTime=performance.now()
+		const babelTime=new Number(babelEndTime-babelStartTime)
+        response.addData({ source: "BABELNET", inf: senses,time:precise(babelTime) })
 
+
+		const wikiStartTime=performance.now()
         senses = await wikiMethods.searchByName(req.body.word, req.body.lang, req.body.sensitive, req.body.limit)
+		const wikiEndTime=performance.now()
+		const wikiTime=new Number(wikiEndTime-wikiStartTime)
+        response.addData({ source: "WIKIDATA", inf: senses,time:precise(wikiTime)})
 
-        response.addData({ source: "WIKIDATA", inf: senses })
+		const dbpStartTime=performance.now()
+        senses = await dbPediaMethods.description(req.body.word, req.body.lang, req.body.sensitive,req.body.limit)
+        const dbpEndTime=performance.now()
+		const dbpTime=new Number(dbpEndTime-dbpStartTime)
+        response.addData({ source: "DBPEDIA", inf: senses,time:precise(dbpTime) })
 
-        senses = await dbPediaMethods.description(req.body.word, req.body.lang, req.body.sensitive)
-        response.addData({ source: "DBPEDIA", inf: senses })
-
+		const dbnStartTime=performance.now()
         senses = await dbNaryMethods.senses(req.body.word, req.body.lang, req.body.limit)
-        response.addData({ source: "DBNARY", inf: senses })
+		const dbnEndTime=performance.now() 
+		const dbnTime=new Number(dbnEndTime-dbnStartTime)
+        response.addData({ source: "DBNARY", inf: senses ,time:precise(dbnTime)})
         res.send(response)
 
     }
@@ -170,7 +216,7 @@ const senses = async(req, res) => {
 }
 
 const relations = async(req, res) => {
-    let sensitive = true;
+    
     if (req.body.sensitive != undefined) {
         sensitive = req.body.sensitive
     }
@@ -180,8 +226,8 @@ const relations = async(req, res) => {
 
         let response = new Response(true, "discovered relations")
         let relations = ""
-        relations = await conceptMethods.assertions(res, req.body.word, req.body.lang, sensitive)
-        response.addData({ source: "CONCEPTNET", inf: relations })
+        //relations = await conceptMethods.assertions(res, req.body.word, req.body.lang, sensitive)
+        //response.addData({ source: "CONCEPTNET", inf: relations })
 
         req.body.relations = true
 
@@ -189,12 +235,25 @@ const relations = async(req, res) => {
             req.body.limit = DEFAULT_LIMIT
         }
 
-        relations = await babelMethods.senses({...req.body })
 
-        response.addData({ source: "BABELNET", inf: relations })
+		const babelStartTime=performance.now()
+		relations = await babelMethods.senses({...req.body })
+		const babelEndTime=performance.now()
+		const babelTime=new Number(babelEndTime-babelStartTime)
 
+        response.addData({ source: "BABELNET", inf: relations,time:precise(babelTime) })
+
+		const dbnStartTime=performance.now()
         relations = await dbNaryMethods.relations(req.body.word, req.body.lang, req.body.limit)
-        response.addData({ source: "DBNARY", inf: relations })
+		const dbnEndTime=performance.now()
+		const dbnTime=new Number(dbnEndTime-dbnStartTime)
+        response.addData({ source: "DBNARY", inf: relations,time:precise(dbnTime) })
+		
+		const wikiStartTime=performance.now()
+		relations=await wikiMethods.searchRelations(req.body.word,req.body.lang,req.body.limit)
+		const wikiEndTime=performance.now()
+		const wikiTime=new Number(wikiEndTime-wikiStartTime)
+	    response.addData(({source:"WIKIDATA",inf:relations,time:precise(wikiTime)}))
         res.send(response)
     }
 }
@@ -206,11 +265,11 @@ const emoticons = async(req, res) => {
     } else {
 
         let emotes = ""
-        emotes = await conceptMethods.emoticons(req.body.word, req.body.lang)
+        //emotes = await conceptMethods.emoticons(req.body.word, req.body.lang)
 
         let response = new Response(true, "discovered emoticons");
 
-        response.addData({ source: "CONCEPTNET", inf: emotes })
+        //response.addData({ source: "CONCEPTNET", inf: emotes })
 
         req.body.emote = true
         req.body.langs = undefined
@@ -219,13 +278,18 @@ const emoticons = async(req, res) => {
             req.body.limit = DEFAULT_LIMIT
         }
 
+
+		const babelStartTime=performance.now()
         emotes = await babelMethods.senses({...req.body })
+		const babelEndTime=performance.now()
+		const babelTime=new Number(babelEndTime-babelStartTime)
+        response.addData({ source: "BABELNET", inf: emotes,time:precise(babelTime) })
 
-        response.addData({ source: "BABELNET", inf: emotes })
-
+		const wikiStartTime=performance.now()
         emotes = await wikiMethods.emotes(req.body.word, req.body.lang, req.body.limit, req.body.sensitive)
-
-        response.addData({ source: "WIKIDATA", inf: emotes })
+		const wikiEndTime=performance.now()
+		const wikiTime=new Number(wikiEndTime-wikiStartTime)
+        response.addData({ source: "WIKIDATA", inf: emotes,time:precise(wikiTime) })
         res.send(response)
     }
 
@@ -244,26 +308,68 @@ const synonyms = async(req, res) => {
 
         let syns = "";
         let response = new Response(true, "retrieved synonyms")
-
+        const babelStartTime=performance.now()
         syns = await babelMethods.senses({...req.body })
-
-        response.addData({ source: "BABELNET", inf: syns })
-
+        const babelEndTime=performance.now()
+        const babelTime=new Number(babelEndTime-babelStartTime) 
+        response.addData({ source: "BABELNET", inf: syns ,time:precise(babelTime)})
+		const wikiStartTime=performance.now()
         syns = await wikiMethods.searchSynonyms(req.body.word, req.body.lang, req.body.limit)
-
-        response.addData({ source: "WIKIDATA", inf: syns })
-
-        syns = await dbPediaMethods.synonyms(req.body.word, req.body.lang)
-
-        response.addData({ source: "DBPEDIA", inf: syns })
-
+		const wikiEndTime=performance.now()
+		const wikiTime=new Number(wikiEndTime-wikiStartTime)
+        response.addData({ source: "WIKIDATA", inf: syns ,time:precise(wikiTime)})
+		const dbpStartTime=performance.now()
+        syns = await dbPediaMethods.synonyms(req.body.word, req.body.lang,req.body.limit)
+		const dbpEndTime=performance.now()
+		const dbpTime=new Number(dbpEndTime-dbpStartTime)
+        response.addData({ source: "DBPEDIA", inf: syns ,time:precise(dbpTime)})
+		const dbnStartTime=performance.now()
         syns = await dbNaryMethods.synonyms(req.body.word, req.body.lang, req.body.limit)
-
-        response.addData({ source: "DBNARY", inf: syns })
+		const dbnEndTime=performance.now()
+		const dbnTime=new Number(dbnEndTime-dbnStartTime)
+        response.addData({ source: "DBNARY", inf: syns ,time:precise(dbnTime)})
         res.send(response)
     }
 }
 
+const hierarchy=async(req,res)=>{
+
+	if (req.body.word == undefined || req.body.lang == undefined) {
+		res.send(new Response(false, "paramethers not valids"))
+	}
+
+	if(req.body.limit==undefined){
+
+	req.body.limit=DEFAULT_LIMIT
+	}
+
+	let response = new Response(true, "retrieved hierarchy")
+
+	req.body.langs = undefined
+	req.body.hierarchy=true
+
+	let result=""
+
+	let startTime=performance.now()
+	result=await wikiMethods.searchSubClasses(req.body.word,req.body.lang,req.body.limit)
+	let endTime=performance.now()
+	let time=new Number(endTime-startTime)
+	response.addData({ source: "WIKIDATA", inf: result ,time:precise(time)})
+
+	startTime=performance.now()
+	//result=await babelMethods.senses({...req.body})
+	endTime=performance.now()
+	time=new Number(endTime-startTime)
+	//response.addData({ source: "BABELNET", inf: result, time: precise(time)})
+
+	startTime = performance.now()
+	result = await dbPediaMethods.hierarchy(req.body.word, req.body.lang, req.body.limit)
+	endTime = performance.now()
+	time = new Number(endTime - startTime)
+	response.addData({ source: "DBPEDIA", inf: result, time: precise(time) })
+	res.send(response)
+
+}
 module.exports = {
     all: all,
     senses: senses,
@@ -271,5 +377,6 @@ module.exports = {
     imgs: imgs,
     relations: relations,
     emoticons: emoticons,
-    synonyms: synonyms
+    synonyms: synonyms,
+	hierarchy:hierarchy
 }

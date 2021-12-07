@@ -54,11 +54,13 @@ app.post("/senses", (req, res) => controller.senses(req, res))
 
 app.post("/relations", (req, res) => controller.relations(req, res))
 
-app.get("/all", (req, res) => controller.all(req, res))
+app.post("/all", (req, res) => controller.all(req, res))
 
 app.post("/emoticons", (req, res) => controller.emoticons(req, res))
 
 app.post("/synonyms", (req, res) => controller.synonyms(req, res))
+
+app.post("/hierarchy",(req,res)=>controller.hierarchy(req,res))
 
 
 app.post("/dbNary", (req, res) => {
