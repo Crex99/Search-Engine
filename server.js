@@ -20,16 +20,16 @@ app.use(express.urlencoded({ extended: true }));
 /*
 const middleware=(req,res,next)=>{
 
-    //questo è il middleware più semplice possibile
-    //non fa altro che porsi da ponte tra il server e il web
+	//questo è il middleware più semplice possibile
+	//non fa altro che porsi da ponte tra il server e il web
     
-    return next();
+	return next();
 
-    //questo termina tutte le chiamate del server
-    return res.sendStatus(401);
+	//questo termina tutte le chiamate del server
+	return res.sendStatus(401);
 
-    //questo simula un errore del server
-    return res.sendStatus(500);
+	//questo simula un errore del server
+	return res.sendStatus(500);
 }
 */
 app.use(helmet());
@@ -43,7 +43,7 @@ app.use(cors());
  */
 
 app.get("/", (req, res) => {
-    res.status(200).send({ message: "Hello da JS.it" });
+	res.status(200).send({ message: "Hello da JS.it" });
 });
 
 app.post("/imgs", (req, res) => controller.imgs(req, res))
@@ -60,15 +60,21 @@ app.post("/emoticons", (req, res) => controller.emoticons(req, res))
 
 app.post("/synonyms", (req, res) => controller.synonyms(req, res))
 
-app.post("/hierarchy",(req,res)=>controller.hierarchy(req,res))
+app.post("/hyponyms", (req, res) => controller.hyponyms(req, res))
+
+app.post("/hypernyms", (req, res) => controller.hypernyms(req, res))
+
+app.post("/holonyms", (req, res) => controller.holonyms(req, res))
+
+app.post("/meronyms", (req, res) => controller.meronyms(req, res))
 
 
 app.post("/dbNary", (req, res) => {
-    const word = req.body.word;
-    const lang = req.body.lang;
-    dbNaryMethods.test(word, lang);
+	const word = req.body.word;
+	const lang = req.body.lang;
+	dbNaryMethods.test(word, lang);
 });
 
 app.listen(PORT, () => {
-    console.log("server in ascolto alla porta " + PORT);
+	console.log("server in ascolto alla porta " + PORT);
 });
