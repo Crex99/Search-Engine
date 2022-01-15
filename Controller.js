@@ -154,6 +154,11 @@ const trads = async (req, res) => {
 		const babelEndTime = performance.now()
 		const babelTime = new Number(babelEndTime - babelStartTime)
 		response.addData({ source: "BABELNET", inf: trads, time: precise(babelTime) })
+		let startTime = performance.now()
+		trads = await conceptMethods.edges(req.body.word, req.body.lang, "trads", req.body.limit, req.body.langs)
+		let endTime = performance.now()
+		let time = new Number(endTime - startTime)
+		response.addData({ source: "CONCEPTNET", inf: trads, time: precise(time) })
 		res.send(response)
 	} else {
 		res.send(new Response(false, "paramethers not valids"))
@@ -186,30 +191,18 @@ const senses = async (req, res) => {
 
 		let senses = ""
 
-		const babelStartTime = performance.now()
+		let startTime = performance.now()
 		senses = await babelMethods.senses({ ...req.body });
-		const babelEndTime = performance.now()
-		const babelTime = new Number(babelEndTime - babelStartTime)
-		response.addData({ source: "BABELNET", inf: senses, time: precise(babelTime) })
+		console.log("sense", senses)
+		let endTime = performance.now()
+		let time = new Number(endTime - startTime)
+		response.addData({ source: "BABELNET", inf: senses, time: precise(time) })
 
-
-		const wikiStartTime = performance.now()
-		senses = await wikiMethods.searchByName(req.body.word, req.body.lang, req.body.sensitive, req.body.limit)
-		const wikiEndTime = performance.now()
-		const wikiTime = new Number(wikiEndTime - wikiStartTime)
-		response.addData({ source: "WIKIDATA", inf: senses, time: precise(wikiTime) })
-
-		const dbpStartTime = performance.now()
-		senses = await dbPediaMethods.description(req.body.word, req.body.lang, req.body.sensitive, req.body.limit)
-		const dbpEndTime = performance.now()
-		const dbpTime = new Number(dbpEndTime - dbpStartTime)
-		response.addData({ source: "DBPEDIA", inf: senses, time: precise(dbpTime) })
-
-		const dbnStartTime = performance.now()
-		senses = await dbNaryMethods.senses(req.body.word, req.body.lang, req.body.limit)
-		const dbnEndTime = performance.now()
-		const dbnTime = new Number(dbnEndTime - dbnStartTime)
-		response.addData({ source: "DBNARY", inf: senses, time: precise(dbnTime) })
+		startTime = performance.now()
+		senses = await conceptMethods.edges(req.body.word, req.body.lang, "IsA", req.body.limit)
+		endTime = performance.now()
+		time = new Number(endTime - startTime)
+		response.addData({ source: "CONCEPTNET", inf: senses, time: precise(time) })
 		res.send(response)
 
 	}
@@ -227,14 +220,17 @@ const relations = async (req, res) => {
 
 		let response = new Response(true, "discovered relations")
 		let relations = ""
-		//relations = await conceptMethods.assertions(res, req.body.word, req.body.lang, sensitive)
-		//response.addData({ source: "CONCEPTNET", inf: relations })
-
 		req.body.relations = true
 
 		if (req.body.limit == undefined) {
 			req.body.limit = DEFAULT_LIMIT
 		}
+
+		let startTime = performance.now()
+		relations = await conceptMethods.edges(req.body.word, req.body.lang, undefined, req.body.limit)
+		let endTime = performance.now()
+		let time = new Number(endTime - startTime)
+		response.addData({ source: "CONCEPTNET", inf: relations, time: precise(time) })
 
 
 		const babelStartTime = performance.now()
@@ -270,19 +266,23 @@ const emoticons = async (req, res) => {
 		res.send(new Response(false, "paramethers not valids"))
 	} else {
 
-		let emotes = ""
-		//emotes = await conceptMethods.emoticons(req.body.word, req.body.lang)
-
-		let response = new Response(true, "discovered emoticons");
-
-		//response.addData({ source: "CONCEPTNET", inf: emotes })
-
 		req.body.emote = true
 		req.body.langs = undefined
 
 		if (req.body.limit == undefined) {
 			req.body.limit = DEFAULT_LIMIT
 		}
+
+		let emotes = ""
+		let response = new Response(true, "discovered emoticons");
+		let startTime = performance.now()
+		emotes = await conceptMethods.edges(req.body.word, req.body.lang, "SymbolOf", req.body.limit)
+		let endTime = performance.now()
+		let time = new Number(endTime - startTime)
+
+		response.addData({ source: "CONCEPTNET", inf: emotes, time: precise(time) })
+
+
 
 
 		const babelStartTime = performance.now()
@@ -314,6 +314,13 @@ const synonyms = async (req, res) => {
 
 		let syns = "";
 		let response = new Response(true, "retrieved synonyms")
+
+		let startTime = performance.now()
+		syns = await conceptMethods.edges(req.body.word, req.body.lang, "Synonym", req.body.limit)
+		let endTime = performance.now()
+		let time = new Number(endTime - startTime)
+
+		response.addData({ source: "CONCEPTNET", inf: syns, time: precise(time) })
 		const babelStartTime = performance.now()
 		syns = await babelMethods.senses({ ...req.body })
 		const babelEndTime = performance.now()
@@ -428,6 +435,11 @@ const meronyms = async (req, res) => {
 	endTime = performance.now()
 	time = new Number(endTime - startTime)
 	response.addData({ source: "DBNARY", inf: result, time: precise(time) })
+	startTime = performance.now()
+	result = await conceptMethods.edges(req.body.word, req.body.lang, "PartOf", req.body.limit)
+	endTime = performance.now()
+	time = new Number(endTime - startTime)
+	response.addData({ source: "CONCEPTNET", inf: result, time: precise(time) })
 	res.send(response)
 }
 const holonyms = async (req, res) => {
@@ -455,11 +467,136 @@ const holonyms = async (req, res) => {
 	endTime = performance.now()
 	time = new Number(endTime - startTime)
 	response.addData({ source: "DBNARY", inf: result, time: precise(time) })
+	startTime = performance.now()
+	result = await conceptMethods.edges(req.body.word, req.body.lang, "HasA", req.body.limit)
+	endTime = performance.now()
+	time = new Number(endTime - startTime)
+	response.addData({ source: "CONCEPTNET", inf: result, time: precise(time) })
+	res.send(response)
+}
+
+const descriptions = async (req, res) => {
+
+	if (req.body.word == undefined || req.body.lang == undefined) {
+		res.send(new Response(false, "paramethers not valids"))
+	}
+
+	if (req.body.limit == undefined) {
+
+		req.body.limit = DEFAULT_LIMIT
+	}
+
+	req.body.langs = undefined
+	req.body.descriptions = true
+	let response = new Response(true, "retrieved descriptions")
+	let result = ""
+	let startTime = performance.now()
+	result = await babelMethods.senses({ ...req.body })
+	let endTime = performance.now()
+	let time = new Number(endTime - startTime)
+	response.addData({ source: "BABELNET", inf: result, time: precise(time) })
+
+	startTime = performance.now()
+	result = await conceptMethods.edges(req.body.word, req.body.lang, "IsA", req.body.limit)
+	endTime = performance.now()
+	time = new Number(endTime - startTime)
+	response.addData({ source: "CONCEPTNET", inf: result, time: precise(time) })
+
+	startTime = performance.now()
+	result = await wikiMethods.searchByName(req.body.word, req.body.lang, req.body.sensitive, req.body.limit)
+	endTime = performance.now()
+	time = new Number(endTime - startTime)
+	response.addData({ source: "WIKIDATA", inf: result, time: precise(time) })
+	startTime = performance.now()
+	result = await dbPediaMethods.description(req.body.word, req.body.lang, req.body.sensitive, req.body.limit)
+	endTime = performance.now()
+	time = new Number(endTime - startTime)
+	response.addData({ source: "DBPEDIA", inf: result, time: precise(time) })
+	startTime = performance.now()
+	result = await dbNaryMethods.senses(req.body.word, req.body.lang, req.body.limit)
+	endTime = performance.now()
+	time = new Number(endTime - startTime)
+	response.addData({ source: "DBNARY", inf: result, time: precise(time) })
+	res.send(response)
+}
+const hasPart = async (req, res) => {
+	if (req.body.word == undefined || req.body.lang == undefined) {
+		res.send(new Response(false, "paramethers not valids"))
+	}
+
+	if (req.body.limit == undefined) {
+
+		req.body.limit = DEFAULT_LIMIT
+	}
+
+	req.body.langs = undefined
+	req.body.hasPart = true
+	let result = ""
+	let response = new Response(true, "retrieved parts")
+	let startTime = performance.now()
+	result = await babelMethods.senses({ ...req.body })
+	let endTime = performance.now()
+	let time = new Number(endTime - startTime)
+	response.addData({ source: "BABELNET", inf: result, time: precise(time) })
+
+	startTime = performance.now()
+	result = await conceptMethods.edges(req.body.word, req.body.lang, "HasA", req.body.limit)
+	endTime = performance.now()
+	time = new Number(endTime - startTime)
+	response.addData({ source: "CONCEPTNET", inf: result, time: precise(time) })
+	res.send(response)
+}
+const partOf = async (req, res) => {
+	if (req.body.word == undefined || req.body.lang == undefined) {
+		res.send(new Response(false, "paramethers not valids"))
+	}
+
+	if (req.body.limit == undefined) {
+
+		req.body.limit = DEFAULT_LIMIT
+	}
+
+	req.body.langs = undefined
+	req.body.partOf = true
+	let result = ""
+	let response = new Response(true, "retrieved parts Of")
+	let startTime = performance.now()
+	result = await babelMethods.senses({ ...req.body })
+	let endTime = performance.now()
+	let time = new Number(endTime - startTime)
+	response.addData({ source: "BABELNET", inf: result, time: precise(time) })
+	startTime = performance.now()
+	result = await conceptMethods.edges(req.body.word, req.body.lang, "PartOf", req.body.limit)
+	endTime = performance.now()
+	time = new Number(endTime - startTime)
+	response.addData({ source: "CONCEPTNET", inf: result, time: precise(time) })
+	res.send(response)
+}
+const isA = async (req, res) => {
+	if (req.body.word == undefined || req.body.lang == undefined) {
+		res.send(new Response(false, "paramethers not valids"))
+	}
+
+	if (req.body.limit == undefined) {
+
+		req.body.limit = DEFAULT_LIMIT
+	}
+
+	req.body.langs = undefined
+	req.body.isA = true
+	let result = ""
+	let response = new Response(true, "retrieved results")
+	let startTime = performance.now()
+	result = await babelMethods.senses({ ...req.body })
+	let endTime = performance.now()
+	let time = new Number(endTime - startTime)
+	response.addData({ source: "BABELNET", inf: result, time: precise(time) })
 	res.send(response)
 }
 module.exports = {
 	all: all,
 	senses: senses,
+	descriptions: descriptions,
 	trads: trads,
 	imgs: imgs,
 	relations: relations,
@@ -468,5 +605,8 @@ module.exports = {
 	hyponyms: hyponyms,
 	hypernyms: hypernyms,
 	meronyms: meronyms,
-	holonyms: holonyms
+	holonyms: holonyms,
+	hasPart: hasPart,
+	partOf: partOf,
+	isA: isA
 }

@@ -32,6 +32,7 @@ const sense = class Sense {
 	}
 
 	addDescription(description) {
+		description = description.split("_").join(" ")
 		this.descriptions.push(description)
 	}
 

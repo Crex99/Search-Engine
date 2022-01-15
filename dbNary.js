@@ -116,7 +116,9 @@ const synonyms = async (word, lang, limit) => {
 			Object.entries(row).forEach(([key, value]) => {
 				current = (` ${value.value}`)
 				synonym = current.split("/")
-				out.push(synonym[synonym.length - 1])
+				synonym = synonym[synonym.length - 1]
+				synonym = synonym.split("_").join(" ")
+				out.push(synonym)
 			})
 		)
 		resolve(out)

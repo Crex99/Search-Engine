@@ -312,11 +312,18 @@ const emotes = (word, lang, limit, sensitive) => {
 							symbols.push(element.mainsnak.datavalue.value)
 
 						});
-						out.push({ word: label, emotes: symbols })
+						if (symbols.length >= limit) {
+							symbols.length = limit
+							out.push({ word: label, emotes: symbols })
+							resolve(out)
+						} else {
+							limit = limit - symbols.length
+							out.push({ word: label, emotes: symbols })
+						}
+
 					}
 
 				});
-
 				resolve(out)
 			})
 
@@ -344,7 +351,6 @@ const searchSynonyms = (word, lang, limit) => {
 			for (let i = 0; i < limit && i < items.length; i++) {
 				let label = " " + items[i].label + " "
 				if (label.includes(" " + word + " ")) {
-
 					search_items.push({ label: items[i].label, description: items[i].description })
 					ids.push(items[i].id)
 				}
@@ -371,7 +377,10 @@ const searchSynonyms = (word, lang, limit) => {
 						if (synonyms != undefined) {
 							let syns = []
 							synonyms.forEach(element => {
-								syns.push(element.value)
+								if (element.value.length > 2) {
+									syns.push(element.value)
+								}
+
 							});
 							if (syns.length >= limit) {
 								syns.length = limit

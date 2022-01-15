@@ -63,7 +63,7 @@ const qr = (word, lang, limit, sensitive, trad, synonyms, images, hypernyms, rel
         WHERE
              {
                 ?item rdfs:label "` + word + `" @` + lang + `.
-                OPTIONAL { ?item dbp:genus ?label }
+                OPTIONAL { ?item dbo:abstract ?label }
                 FILTER ( LANG ( ?label ) = '` + lang + `' )
              }LIMIT `+ limit
 	}

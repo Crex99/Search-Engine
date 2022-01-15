@@ -52,6 +52,8 @@ app.post("/trads", (req, res) => controller.trads(req, res))
 
 app.post("/senses", (req, res) => controller.senses(req, res))
 
+app.post("/descriptions", (req, res) => controller.descriptions(req, res))
+
 app.post("/relations", (req, res) => controller.relations(req, res))
 
 app.post("/all", (req, res) => controller.all(req, res))
@@ -68,12 +70,14 @@ app.post("/holonyms", (req, res) => controller.holonyms(req, res))
 
 app.post("/meronyms", (req, res) => controller.meronyms(req, res))
 
+//ONLY BABELNET
 
-app.post("/dbNary", (req, res) => {
-	const word = req.body.word;
-	const lang = req.body.lang;
-	dbNaryMethods.test(word, lang);
-});
+app.post("/hasPart", (req, res) => controller.hasPart(req, res))
+
+app.post("/partOf", (req, res) => controller.partOf(req, res))
+
+app.post("/isA", (req, res) => controller.isA(req, res))
+
 
 app.listen(PORT, () => {
 	console.log("server in ascolto alla porta " + PORT);
