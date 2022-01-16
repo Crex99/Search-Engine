@@ -42,9 +42,9 @@ app.use(cors());
  * send può trasmettere testo ma anche json
  */
 
-app.get("/", (req, res) => {
-	res.status(200).send({ message: "Hello da JS.it" });
-});
+/*app.get("/", (req, res) => {
+	res.status(200).send("Hello da JS.it");
+});*/
 
 app.post("/imgs", (req, res) => controller.imgs(req, res))
 
