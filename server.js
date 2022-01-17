@@ -12,7 +12,7 @@ const dbPediaMethods = require("./dbpedia");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.set('view engine', 'ejs');
 /**
  * Il middleware in express non è altro che una funzione 
  * che ritorna il parametro next per usarlo basta fare app.use(funzione)
@@ -43,7 +43,7 @@ app.use(cors());
  */
 
 app.get("/", (req, res) => {
-	res.status(200).send("Hello da JS.it");
+	res.render("home");
 });
 
 app.post("/imgs", (req, res) => controller.imgs(req, res))

@@ -5,6 +5,7 @@ const functions = require("./commonFeauters")
 //prende tutti gli edge di una data parola word in input nella lingua lang
 const edges = (word, lang, rel, limit, langs) => {
 	word = functions.formatWordConcept(word);
+	console.log(word)
 	lang = functions.formatLang2low(lang);
 	if (langs != undefined) {
 		langs = langs.split(",")

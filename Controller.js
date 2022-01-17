@@ -193,7 +193,6 @@ const senses = async (req, res) => {
 
 		let startTime = performance.now()
 		senses = await babelMethods.senses({ ...req.body });
-		console.log("sense", senses)
 		let endTime = performance.now()
 		let time = new Number(endTime - startTime)
 		response.addData({ source: "BABELNET", inf: senses, time: precise(time) })
