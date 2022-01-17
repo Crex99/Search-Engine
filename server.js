@@ -2,7 +2,7 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const app = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 const controller = require("./Controller");
 const conceptMethods = require("./conceptnetAPI");
 const dbNaryMethods = require("./dbNary");
@@ -12,7 +12,7 @@ const dbPediaMethods = require("./dbpedia");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.set('view engine', 'ejs');
 /**
  * Il middleware in express non è altro che una funzione 
  * che ritorna il parametro next per usarlo basta fare app.use(funzione)
@@ -42,9 +42,9 @@ app.use(cors());
  * send può trasmettere testo ma anche json
  */
 
-/*app.get("/", (req, res) => {
-	res.status(200).send("Hello da JS.it");
-});*/
+app.get("/", (req, res) => {
+	res.render("home");
+});
 
 app.post("/imgs", (req, res) => controller.imgs(req, res))
 

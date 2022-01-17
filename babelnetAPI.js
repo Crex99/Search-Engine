@@ -157,7 +157,7 @@ const informations = async (word, id, b, syn, limit) => {
 
 //ritorna i senses di una data parola in input(word) 
 const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, emote, imgs, langs, hyponyms, hypernyms, meronyms, holonyms, descriptions, partOf, hasPart, isA }) => {
-
+	word = word.toLowerCase()
 	let outs = []
 	let array = []
 	lang = functions.formatLang2High(lang);
