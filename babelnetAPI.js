@@ -663,7 +663,7 @@ const supChar = async (ids, relatives, i) => {
 
 }
 
-const hierarchies = (id, limit, rel) => {
+const hierarchies = (id, lang, rel) => {
 	return new Promise((resolve) => {
 
 		const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY;
@@ -673,7 +673,7 @@ const hierarchies = (id, limit, rel) => {
 
 			result.data.forEach(element => {
 
-				if (element.pointer.relationGroup == rel) {
+				if (element.pointer.relationGroup == rel && element.language == lang) {
 					ids.push(element.target)
 				}
 			});
