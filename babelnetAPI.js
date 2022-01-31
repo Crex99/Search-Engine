@@ -1,13 +1,13 @@
 const axios = require('axios');
 const functions = require("./commonFeauters")
 const endpointUrl = 'https://babelnet.org/sparql/';
-const KEY = "69b0ba73-de64-4cee-a700-c2005da7ed66";
-const KEY2 = "f82361e3-a269-453f-a1ea-a294233c2e71";
-const KEY3 = "e7849be2-f543-4c17-afef-24d9a5e9abbe";
+const KEY0 = "69b0ba73-de64-4cee-a700-c2005da7ed66";
+const KEY1 = "f82361e3-a269-453f-a1ea-a294233c2e71";
+const KEY2 = "e7849be2-f543-4c17-afef-24d9a5e9abbe";
+const KEY3 = "1a22c99a-e36e-4471-8e91-a140856575b9";
+const KEY = "a655d940-dff5-4aa5-80c9-aff96232ae8b";
 const Sense = require("./Classes/Sense");
 const Trad = require('./Classes/Trad');
-const { hierarchy } = require('./Controller');
-const sense = require('./Classes/Sense');
 
 const SYNONYM = "POTENTIAL_NEAR_SYNONYM_OR_WORSE"
 const HIGHQUALITY = "HIGH_QUALITY"
@@ -475,6 +475,8 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								}
 							} else if (synonyms != true) {
 
+
+
 								const sense = new Sense(out[i].properties.fullLemma)
 
 								const final = await types(out[i].properties.synsetID.id, lang, limit);
@@ -688,8 +690,8 @@ const hierarchies = (id, lang, rel) => {
 
 
 		}).catch((err) => {
-
 			console.log("error", err)
+			resolve([])
 		})
 
 	})
@@ -744,6 +746,10 @@ const types = (id, lang, limit) => {
 					arr.push(element.target)
 				}
 			});
+
+			if (arr.length === 0) {
+				resolve([])
+			}
 
 			let i = 0;
 

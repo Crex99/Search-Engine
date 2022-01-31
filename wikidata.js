@@ -217,6 +217,10 @@ const searchImgs = (res, word, lang, sensitive, max) => {
 				}
 			})
 
+			if (search_items.length === 0) {
+				resolve([])
+			}
+
 
 			const url0 = wdk.getEntities({
 				ids: search_items,
@@ -299,8 +303,11 @@ const emotes = (word, lang, limit, sensitive) => {
 			axios.get(url0).then((response) => {
 				let out = []
 				ids.forEach(element => {
+					let label = ""
+					if (response.data.entities[element].labels[lang] != undefined) {
+						label = response.data.entities[element].labels[lang].value
+					}
 
-					let label = response.data.entities[element].labels[lang].value
 					let emotes = response.data.entities[element].claims[SYMBOL]
 
 					let symbols = []
@@ -437,9 +444,11 @@ const searchSubClasses = (word, lang, limit) => {
 					let subclassesIds = []
 					ids.forEach(id => {
 						const subclasses = result.data.entities[id].claims[SUBCLASS]
-						subclasses.forEach(element => {
-							subclassesIds.push(element.mainsnak.datavalue.value.id)
-						});
+						if (subclasses != undefined) {
+							subclasses.forEach(element => {
+								subclassesIds.push(element.mainsnak.datavalue.value.id)
+							});
+						}
 					});
 					if (subclassesIds.length > 0) {
 						const url3 = wdk.getEntities({
@@ -451,7 +460,10 @@ const searchSubClasses = (word, lang, limit) => {
 						axios.get(url3).then((result) => {
 							let response = []
 							subclassesIds.forEach(id => {
-								response.push(result.data.entities[id].labels[lang].value)
+								if (result.data.entities[id].labels[lang] != undefined) {
+									response.push(result.data.entities[id].labels[lang].value)
+								}
+
 							});
 							resolve(response)
 						})
