@@ -1,11 +1,28 @@
 const axios = require('axios');
 const functions = require("./commonFeauters")
 const endpointUrl = 'https://babelnet.org/sparql/';
+
+const KEY5 = "88d63fb0-3827-49df-a80d-4d649aff9876";
 const KEY0 = "69b0ba73-de64-4cee-a700-c2005da7ed66";
 const KEY1 = "f82361e3-a269-453f-a1ea-a294233c2e71";
 const KEY2 = "e7849be2-f543-4c17-afef-24d9a5e9abbe";
 const KEY3 = "1a22c99a-e36e-4471-8e91-a140856575b9";
-const KEY = "a655d940-dff5-4aa5-80c9-aff96232ae8b";
+const KEY4 = "a655d940-dff5-4aa5-80c9-aff96232ae8b";
+
+const KEYS = [KEY3, KEY4, KEY5]
+
+let keyIndex = 0;
+let KEY = KEYS[keyIndex]
+
+
+
+const nextKey = () => {
+	keyIndex += 1
+	if (keyIndex === KEYS.length) {
+		keyIndex = 0
+	}
+	KEY = KEYS[keyIndex]
+}
 const Sense = require("./Classes/Sense");
 const Trad = require('./Classes/Trad');
 
@@ -22,6 +39,7 @@ const getDescriptions = (id, lang, limit) => {
 	const url = "https://babelnet.io/v6/getSynset?id=" + id + "&targetLang=" + lang + "&key=" + KEY
 	return new Promise((resolve) => {
 		axios.get(url).then((result) => {
+			nextKey()
 			for (let i = 0; i < limit && i < result.data.glosses.length; i++) {
 				let gloss = result.data.glosses[i]
 				set.add(gloss.gloss)
@@ -31,7 +49,7 @@ const getDescriptions = (id, lang, limit) => {
 			});
 			resolve(arr)
 		}).catch((err) => {
-			console.log(err)
+			resolve([])
 		})
 
 	})
@@ -110,6 +128,7 @@ const emotes = async (id, b) => {
 		const response = await axios.get(url);
 		return new Promise((resolve) => {
 			let out = response.data;
+			nextKey()
 			out.senses.forEach(element => {
 				if (element.properties.lemma.type == SYNONYM) {
 					if (element.properties.lemma.lemma.length == 2) {
@@ -123,6 +142,7 @@ const emotes = async (id, b) => {
 		})
 	} catch (error) {
 		console.log(error);
+		resolve([])
 	}
 };
 
@@ -138,6 +158,7 @@ const informations = async (word, id, b, syn, limit) => {
 		return new Promise((resolve) => {
 			let out = response.data;
 			let array = out.senses
+			nextKey()
 			if (syn == true) {
 				for (let i = 0; i < limit && i < array.length; i++) {
 
@@ -151,6 +172,7 @@ const informations = async (word, id, b, syn, limit) => {
 		})
 	} catch (error) {
 		console.log(error);
+		resolve([])
 	}
 }
 
@@ -176,10 +198,8 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 	try {
 		const response = await axios.get(url);
 		let out = response.data;
-		console.log("out", out.length)
-		if (out.length == undefined) {
-			return ([])
-		}
+		nextKey()
+
 		for (let i = 0; i < out.length; i++) {
 			if (i == out.length - 1) {
 				return array;
@@ -507,7 +527,9 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 		return array;
 
 	} catch (error) {
-		console.log(error);
+
+		console.log("errorInSense", error);
+		return ([])
 	}
 	return array;
 };
@@ -527,6 +549,7 @@ const searchImgs = (sense, id, lang, limit) => {
 			let i = 0;
 			let array = []
 			console.log(sense)
+			nextKey()
 			for (let i = 0; i < limit && i < imgs.length; i++) {
 				let element = imgs[i]
 				const name = element.name
@@ -537,6 +560,8 @@ const searchImgs = (sense, id, lang, limit) => {
 			resolve(array);
 
 
+		}).catch((err) => {
+			resolve([])
 		})
 
 	})
@@ -559,6 +584,9 @@ const trads = async (word, id, langs, limit) => {
 
 
 	let translations = response.data.translations
+
+	console.log("translations", translations)
+	nextKey()
 
 	for (let i = 0; i < limit && i < translations.length; i++) {
 		let sup = translations[i]
@@ -602,6 +630,8 @@ const characteristics = async (word, id, lang, limit) => {
 		return new Promise((resolve) => {
 			let out = response.data;
 
+			nextKey()
+
 			for (let i = 0; i < limit && i < out.length; i++) {
 
 				let element = out[i]
@@ -641,6 +671,7 @@ const characteristics = async (word, id, lang, limit) => {
 		})
 	} catch (error) {
 		console.log(error);
+		resolve([])
 	}
 };
 
@@ -649,6 +680,8 @@ const supChar = async (ids, relatives, i) => {
 	const url = "https://babelnet.io/v6/getSynset?id=" + ids[i] + "&key=" + KEY
 
 	const result = await axios.get(url);
+
+	nextKey()
 
 	if (result.data.senses != undefined) {
 		addRelation(relatives[i])
@@ -671,6 +704,7 @@ const hierarchies = (id, lang, rel) => {
 		const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY;
 		axios.get(url).then(async (result) => {
 
+			nextKey()
 			let ids = []
 
 			result.data.forEach(element => {
@@ -703,6 +737,8 @@ const hierSup = (arr, i, ids, results) => {
 		const url = "https://babelnet.io/v6/getSynset?id=" + arr[i] + "&key=" + KEY;
 
 		axios.get(url).then((result) => {
+
+			nextKey()
 			if (result.data.senses != undefined) {
 				result.data.senses.forEach(element => {
 					verify = false
@@ -726,6 +762,8 @@ const hierSup = (arr, i, ids, results) => {
 			} else {
 				resolve(results)
 			}
+		}).catch((err) => {
+			resolve([])
 		})
 	})
 }
@@ -741,6 +779,8 @@ const types = (id, lang, limit) => {
 		let curr_url = ""
 		let response = ""
 		axios.get(url).then((result) => {
+
+			nextKey()
 			result.data.forEach(element => {
 				if (element.language == lang && element.pointer.shortName == "is-a") {
 					arr.push(element.target)
@@ -757,6 +797,9 @@ const types = (id, lang, limit) => {
 				curr_url = " https://babelnet.io/v6/getSynset?id=" + element + "&key=" + KEY
 
 				response = await axios.get(curr_url)
+				if (response.data === undefined || response.data.length === undefined) {
+					resolve([])
+				}
 				set.add(response.data.senses[0].properties.fullLemma)
 				i++;
 				if (i == arr.length) {
@@ -766,6 +809,8 @@ const types = (id, lang, limit) => {
 					resolve(out)
 				}
 			});
+		}).catch((err) => {
+			resolve([])
 		})
 	})
 }
@@ -776,6 +821,8 @@ const getRel = (id, lang, limit, string) => {
 
 		const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY
 		axios.get(url).then((result) => {
+
+			nextKey()
 			let set = new Set()
 			let arr = []
 			result.data.forEach(element => {
@@ -802,6 +849,8 @@ const getRel = (id, lang, limit, string) => {
 					resolve(arr)
 				}
 			});
+		}).catch((err) => {
+			resolve([])
 		})
 	})
 }

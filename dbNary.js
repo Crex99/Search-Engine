@@ -3,6 +3,15 @@ const axios = require('axios');
 const functions = require("./commonFeauters");
 const { hypernyms } = require('./dbpedia');
 const endpointUrl = 'http://kaiko.getalp.org/sparql'
+
+
+const controlBind = (arr) => {
+	if (arr === undefined || arr.length <= 0) {
+		return ([])
+	}
+}
+
+
 const qr = (word, lang, limit, synonyms, relations, hypernyms, hyponyms, holonyms, meronyms) => {
 	//inserire qui la SPARQLE QUERY
 	if (synonyms == true) {
@@ -89,7 +98,7 @@ const senses = async (word, lang, limit) => {
 	word = word.toLowerCase()
 	lang = functions.formatLang2low(lang)
 	const query = qr(word, lang, limit);
-	const bindings = await client.query.select(query)
+	const bindings = await client.query.select(query).catch((err) => { return ([]) })
 	let out = []
 	return new Promise((resolve) => {
 		bindings.forEach((row) => {
@@ -108,7 +117,9 @@ const synonyms = async (word, lang, limit) => {
 	word = word.toLowerCase()
 	lang = functions.formatLang2low(lang)
 	const query = qr(word, lang, limit, true);
-	const bindings = await client.query.select(query)
+	const bindings = await client.query.select(query).catch((err) => {
+		return ([])
+	})
 	let out = []
 	let synonym = ""
 	return new Promise((resolve) => {
@@ -132,7 +143,9 @@ const relations = async (word, lang, limit) => {
 	word = word.toLowerCase()
 	lang = functions.formatLang2low(lang)
 	const query = qr(word, lang, limit, undefined, true);
-	const bindings = await client.query.select(query)
+	const bindings = await client.query.select(query).catch((err) => {
+		return ([])
+	})
 	let out = []
 	let set = new Set()
 	let relation = ""
@@ -177,7 +190,10 @@ const relationvalue = async (word, lang, limit, rel) => {
 			query = qr(word, lang, limit, undefined, undefined, undefined, undefined, undefined, true);
 			break;
 	}
-	const bindings = await client.query.select(query)
+	const bindings = await client.query.select(query).catch((err) => {
+		return ([])
+	})
+
 	let out = []
 	let set = new Set()
 
@@ -207,5 +223,5 @@ module.exports = {
 	senses: senses,
 	synonyms: synonyms,
 	relations: relations,
-	reltionValue: relationvalue
+	relationValue: relationvalue
 }

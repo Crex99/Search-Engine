@@ -31,6 +31,7 @@ const f3 = (w) => {
 
 const f4 = (l) => {
 	out = l[0] + l[1];
+
 	return out.toUpperCase();
 }
 
