@@ -79,7 +79,10 @@ const description = async (word, lang, sensitive, limit) => {
 	word = functions.formatWord(word);
 	lang = functions.formatLang2low(lang);
 	const query = qr(word, lang, limit, sensitive);
-	const bindings = await client2.query.select(query)
+	const bindings = await client2.query.select(query).catch((err) => {
+		console.log(err)
+		return ([])
+	})
 	return new Promise((resolve) => {
 		if (bindings.length == 0) {
 			resolve(bindings)
@@ -105,7 +108,11 @@ const translations = async (word, lang, langs, limit) => {
 	for (let i = 0; i < langs.length; i++) {
 		let trad = langs[i]
 		const query = qr(word, lang, limit, undefined, trad);
-		const bindings = await client.query.select(query)
+		const bindings = await client.query.select(query).
+			catch((err) => {
+				console.log(err)
+				return ([])
+			})
 		bindings.forEach(row =>
 			Object.entries(row).forEach(([key, value]) => {
 				current = (` ${value.value}`)
@@ -141,6 +148,7 @@ const synonyms = async (word, lang, limit) => {
 	const bindings = await client.query.select(query).
 		catch((err) => {
 			console.log(err)
+			return ([])
 		})
 	bindings.forEach(row => {
 		Object.entries(row).forEach(([key, value]) => {
@@ -172,7 +180,11 @@ const images = async (word, lang, limit) => {
 
 	const query = qr(word, lang, limit, undefined, undefined, undefined, true)
 	let out = []
-	const bindings = await client.query.select(query)
+	const bindings = await client.query.select(query).
+		catch((err) => {
+			console.log(err)
+			return ([])
+		})
 	return new Promise((resolve) => {
 		bindings.forEach(row =>
 			Object.entries(row).forEach(([key, value]) => {
@@ -191,7 +203,11 @@ const hypernyms = async (word, lang, limit) => {
 	word = functions.formatWord(word);
 	lang = functions.formatLang2low(lang);
 	const query = qr(word, lang, limit, undefined, undefined, undefined, undefined, true)
-	const bindings = await client.query.select(query)
+	const bindings = await client.query.select(query).
+		catch((err) => {
+			console.log(err)
+			return ([])
+		})
 	let out = []
 	return new Promise((resolve) => {
 		bindings.forEach(row =>
@@ -211,7 +227,11 @@ const relations = async (word, lang, limit) => {
 	word = functions.formatWord(word);
 	lang = functions.formatLang2low(lang);
 	const query = qr(word, lang, limit, undefined, undefined, undefined, undefined, undefined, true)
-	const bindings = await client.query.select(query)
+	const bindings = await client.query.select(query).
+		catch((err) => {
+			console.log(err)
+			return ([])
+		})
 	let out = []
 	let set = new Set()
 	return new Promise((resolve) => {
