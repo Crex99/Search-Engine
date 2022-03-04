@@ -7,7 +7,8 @@ const sense = class Sense {
 		this.images = []
 		this.trads = []
 		this.emotes = []
-		this.hierarchy = ""
+		this.hierarchy = []
+		this.datas = []
 	}
 
 	getName() {
@@ -51,6 +52,15 @@ const sense = class Sense {
 	addTrads(trads) {
 		this.trads.push(trads)
 	}
+
+	addResults(result) {
+		this.datas.push(result)
+	}
+
+	setResults(result) {
+		this.datas = this.datas.concat(result)
+	}
+
 }
 
 module.exports = sense

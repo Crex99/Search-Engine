@@ -2,27 +2,27 @@ const axios = require('axios');
 const functions = require("./commonFeauters")
 const endpointUrl = 'https://babelnet.org/sparql/';
 
-const KEY5 = "88d63fb0-3827-49df-a80d-4d649aff9876";
+const LONGKEY = "88d63fb0-3827-49df-a80d-4d649aff9876";
 const KEY0 = "69b0ba73-de64-4cee-a700-c2005da7ed66";
 const KEY1 = "f82361e3-a269-453f-a1ea-a294233c2e71";
 const KEY2 = "e7849be2-f543-4c17-afef-24d9a5e9abbe";
 const KEY3 = "1a22c99a-e36e-4471-8e91-a140856575b9";
 const KEY4 = "a655d940-dff5-4aa5-80c9-aff96232ae8b";
 
-const KEYS = [KEY3, KEY4, KEY5]
+//const KEYS = [KEY3, KEY4, LONGKEY]
 
 let keyIndex = 0;
-let KEY = KEYS[keyIndex]
+let KEY = LONGKEY
 
 
 
-const nextKey = () => {
+/*const nextKey = () => {
 	keyIndex += 1
 	if (keyIndex === KEYS.length) {
 		keyIndex = 0
 	}
 	KEY = KEYS[keyIndex]
-}
+}*/
 const Sense = require("./Classes/Sense");
 const Trad = require('./Classes/Trad');
 
@@ -37,12 +37,15 @@ const getDescriptions = (id, lang, limit) => {
 	let set = new Set()
 	let arr = []
 	const url = "https://babelnet.io/v6/getSynset?id=" + id + "&targetLang=" + lang + "&key=" + KEY
+	//nextKey()
 	return new Promise((resolve) => {
 		axios.get(url).then((result) => {
-			nextKey()
 			for (let i = 0; i < limit && i < result.data.glosses.length; i++) {
 				let gloss = result.data.glosses[i]
-				set.add(gloss.gloss)
+				if (gloss.language == lang) {
+					set.add(gloss.gloss)
+				}
+
 			}
 			set.forEach(element => {
 				arr.push(element)
@@ -128,7 +131,7 @@ const emotes = async (id, b) => {
 		const response = await axios.get(url);
 		return new Promise((resolve) => {
 			let out = response.data;
-			nextKey()
+			//nextKey()
 			out.senses.forEach(element => {
 				if (element.properties.lemma.type == SYNONYM) {
 					if (element.properties.lemma.lemma.length == 2) {
@@ -158,13 +161,19 @@ const informations = async (word, id, b, syn, limit) => {
 		return new Promise((resolve) => {
 			let out = response.data;
 			let array = out.senses
-			nextKey()
+			//nextKey()
 			if (syn == true) {
 				for (let i = 0; i < limit && i < array.length; i++) {
 
 					let element = array[i]
 					if (element.properties.lemma.type == HIGHQUALITY) {
-						addSynonim(element.properties.lemma.lemma)
+
+						if (element.properties.language == b) {
+
+							addSynonim(element.properties.lemma.lemma)
+
+						}
+
 					}
 				}
 				resolve(synonyms)
@@ -198,10 +207,13 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 	try {
 		const response = await axios.get(url);
 		let out = response.data;
-		nextKey()
+		console.log(out.length)
+		//nextKey()
 
 		for (let i = 0; i < out.length; i++) {
+
 			if (i == out.length - 1) {
+
 				return array;
 			}
 			if (out[i] != undefined) {
@@ -233,15 +245,17 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 							if (final.length >= limit) {
 								final.length = limit
 								sense.addSynonyms(final)
+								sense.setResults(final)
 								for (let k = 0; k < array.length; k++) {
 									if (array[k].name === sense.name) {
 										array[k] = sense
 									}
 								}
 								return array
-							} else {
+							} else if (final.length > 0) {
 								limit = limit - final.length
 								sense.addSynonyms(final)
+								sense.setResults(final)
 								for (let k = 0; k < array.length; k++) {
 									if (array[k].name === sense.name) {
 										array[k] = sense
@@ -262,12 +276,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								if (final.length >= limit) {
 									final.length = limit
 									sense.setRelations(final)
+									sense.setResults(final)
 									array.push(sense)
 
 									return array
-								} else {
+								} else if (final.length > 0) {
 									limit = limit - final.length
 									sense.setRelations(final)
+									sense.setResults(final)
 									array.push(sense)
 								}
 
@@ -281,12 +297,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								if (final.length >= limit) {
 									final.length = limit
 									sense.images = final
+									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
 									sense.images = final
+									sense.setResults(final)
 									array.push(sense)
 								}
 
@@ -319,11 +337,13 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								if (arr.length >= limit) {
 									arr.length = limit
 									sense.trads = arr
+									sense.setResults(arr)
 									array.push(sense)
 
 									return array
 								} else if (arr.length > 0) {
 									sense.trads = arr
+									sense.setResults(arr)
 									array.push(sense)
 									limit = limit - arr.length
 								}
@@ -337,12 +357,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								if (final.length >= limit) {
 									final.length = limit
 									sense.emotes = final
+									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
 									sense.emotes = final
+									sense.setResults(final)
 									array.push(sense)
 								}
 
@@ -354,12 +376,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								if (final.length >= limit) {
 									final.length = limit
 									sense.hierarchy = final
+									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
 									sense.hierarchy = final
+									sense.setResults(final)
 									array.push(sense)
 								}
 							} else if (hypernyms == true) {
@@ -370,12 +394,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								if (final.length >= limit) {
 									final.length = limit
 									sense.hierarchy = final
+									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
 									sense.hierarchy = final
+									sense.setResults(final)
 									array.push(sense)
 								}
 							} else if (holonyms == true) {
@@ -386,12 +412,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								if (final.length >= limit) {
 									final.length = limit
 									sense.hierarchy = final
+									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
 									sense.hierarchy = final
+									sense.setResults(final)
 									array.push(sense)
 								}
 							} else if (meronyms == true) {
@@ -402,11 +430,13 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								if (final.length >= limit) {
 									final.length = limit
 									sense.hierarchy = final
+									sense.setResults(final)
 									array.push(sense)
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
 									sense.hierarchy = final
+									sense.setResults(final)
 									array.push(sense)
 								}
 							} else if (descriptions == true) {
@@ -416,18 +446,19 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 								final.forEach(element => {
 									sense.addDescription(element)
+									sense.addResults(element)
 								});
 								if (final.length > 0) {
 									array.push(sense)
 								}
 
-								if (sense.descriptions.length >= limit) {
+								if (sense.datas.length >= limit) {
 
 
-									sense.descriptions.length = limit
+									sense.datas.length = limit
 									return array
 								} else {
-									limit = limit - sense.descriptions.length
+									limit = limit - sense.datas.length
 								}
 							} else if (hasPart == true) {
 								const sense = new Sense(out[i].properties.fullLemma)
@@ -437,18 +468,19 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								}
 								final.forEach(element => {
 									sense.hierarchy.push(element)
+									sense.addResults(element)
 								});
 								if (final.length > 0) {
 									array.push(sense)
 								}
 
-								if (sense.hierarchy.length >= limit) {
+								if (sense.datas.length >= limit) {
 
 
-									sense.hierarchy.length = limit
+									sense.datas.length = limit
 									return array
 								} else {
-									limit = limit - sense.hierarchy.length
+									limit = limit - sense.datas.length
 								}
 
 							} else if (partOf == true) {
@@ -459,18 +491,19 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								}
 								final.forEach(element => {
 									sense.hierarchy.push(element)
+									sense.addResults(element)
 								});
 								if (final.length > 0) {
 									array.push(sense)
 								}
 
-								if (sense.hierarchy.length >= limit) {
+								if (sense.datas.length >= limit) {
 
 
-									sense.hierarchy.length = limit
+									sense.datas.length = limit
 									return array
 								} else {
-									limit = limit - sense.hierarchy.length
+									limit = limit - sense.datas.length
 								}
 							} else if (isA == true) {
 								const sense = new Sense(out[i].properties.fullLemma)
@@ -480,18 +513,19 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								}
 								final.forEach(element => {
 									sense.hierarchy.push(element)
+									sense.addResults(element)
 								});
 								if (final.length > 0) {
 									array.push(sense)
 								}
 
-								if (sense.hierarchy.length >= limit) {
+								if (sense.datas.length >= limit) {
 
 
-									sense.hierarchy.length = limit
+									sense.datas.length = limit
 									return array
 								} else {
-									limit = limit - sense.hierarchy.length
+									limit = limit - sense.datas.length
 								}
 							} else if (synonyms != true) {
 
@@ -501,21 +535,24 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 								const final = await types(out[i].properties.synsetID.id, lang, limit);
 
+								console.log("final", final)
+
 								final.forEach(element => {
 									sense.addDescription(element)
+									sense.addResults(element)
 								});
 								if (final.length > 0) {
 									array.push(sense)
 								}
 
-								if (sense.descriptions.length >= limit) {
+								if (sense.datas.length >= limit) {
 
 
-									sense.descriptions.length = limit
+									sense.datas.length = limit
 
 									return array
 								} else {
-									limit = limit - sense.descriptions.length
+									limit = limit - sense.datas.length
 								}
 
 							}
@@ -524,6 +561,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 				}
 			}
 		}
+		console.log("FINITO")
 		return array;
 
 	} catch (error) {
@@ -531,7 +569,6 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 		console.log("errorInSense", error);
 		return ([])
 	}
-	return array;
 };
 
 //prende le immagini dato un id 
@@ -549,7 +586,7 @@ const searchImgs = (sense, id, lang, limit) => {
 			let i = 0;
 			let array = []
 			console.log(sense)
-			nextKey()
+			//nextKey()
 			for (let i = 0; i < limit && i < imgs.length; i++) {
 				let element = imgs[i]
 				const name = element.name
@@ -586,7 +623,7 @@ const trads = async (word, id, langs, limit) => {
 	let translations = response.data.translations
 
 	console.log("translations", translations)
-	nextKey()
+	//nextKey()
 
 	for (let i = 0; i < limit && i < translations.length; i++) {
 		let sup = translations[i]
@@ -594,14 +631,17 @@ const trads = async (word, id, langs, limit) => {
 
 		sup.forEach(element => {
 			if (element.properties != undefined) {
-				const trad = new Trad(element.properties.language, element.properties.fullLemma)
-				addTrad(trad)
-
+				console.log("lang", element.properties.language)
+				if (langs.includes(element.properties.language.toLowerCase())) {
+					const trad = new Trad(element.properties.language, element.properties.fullLemma)
+					addTrad(trad)
+				}
 			} else {
 				element.forEach(el => {
-					const trad = new Trad(el.properties.language, el.properties.fullLemma)
-					addTrad(trad)
-
+					if (langs.includes(el.properties.language.toLowerCase())) {
+						const trad = new Trad(el.properties.language, el.properties.fullLemma)
+						addTrad(trad)
+					}
 				});
 
 			}
@@ -619,6 +659,7 @@ const trads = async (word, id, langs, limit) => {
 //prende le relazioni
 
 const characteristics = async (word, id, lang, limit) => {
+
 	let set = new Set()
 	relations_array = [];
 	const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY;
@@ -630,9 +671,11 @@ const characteristics = async (word, id, lang, limit) => {
 		return new Promise((resolve) => {
 			let out = response.data;
 
-			nextKey()
+			//nextKey()
 
 			for (let i = 0; i < limit && i < out.length; i++) {
+
+
 
 				let element = out[i]
 				if (element.language == lang) {
@@ -659,6 +702,7 @@ const characteristics = async (word, id, lang, limit) => {
 					}
 				}
 			}
+
 			set.forEach(element => {
 				arrayPointers.push(element)
 			});
@@ -704,7 +748,7 @@ const hierarchies = (id, lang, rel) => {
 		const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY;
 		axios.get(url).then(async (result) => {
 
-			nextKey()
+			//nextKey()
 			let ids = []
 
 			result.data.forEach(element => {
@@ -717,7 +761,7 @@ const hierarchies = (id, lang, rel) => {
 			let results_ids = []
 			let results = []
 			if (ids.length > 0) {
-				resolve(hierSup(ids, 0, results_ids, results))
+				resolve(hierSup(ids, 0, results_ids, results, lang))
 			} else {
 				resolve([])
 			}
@@ -731,14 +775,14 @@ const hierarchies = (id, lang, rel) => {
 	})
 }
 
-const hierSup = (arr, i, ids, results) => {
+const hierSup = (arr, i, ids, results, lang) => {
 
 	return new Promise((resolve) => {
 		const url = "https://babelnet.io/v6/getSynset?id=" + arr[i] + "&key=" + KEY;
 
 		axios.get(url).then((result) => {
 
-			nextKey()
+			//nextKey()
 			if (result.data.senses != undefined) {
 				result.data.senses.forEach(element => {
 					verify = false
@@ -751,8 +795,12 @@ const hierSup = (arr, i, ids, results) => {
 					if (verify == false) {
 						ids.push(element.properties.synsetID.id)
 						if (results.includes(element.properties.fullLemma.split("_").join(" ")) == false) {
+							if (element.properties.language == lang) {
 
-							results.push(element.properties.fullLemma.split("_").join(" "))
+								results.push(element.properties.fullLemma.split("_").join(" "))
+
+							}
+
 						}
 					}
 				})
@@ -780,7 +828,7 @@ const types = (id, lang, limit) => {
 		let response = ""
 		axios.get(url).then((result) => {
 
-			nextKey()
+			//nextKey()
 			result.data.forEach(element => {
 				if (element.language == lang && element.pointer.shortName == "is-a") {
 					arr.push(element.target)
@@ -788,28 +836,40 @@ const types = (id, lang, limit) => {
 			});
 
 			if (arr.length === 0) {
+
 				resolve([])
 			}
 
 			let i = 0;
-
 			arr.forEach(async (element) => {
 				curr_url = " https://babelnet.io/v6/getSynset?id=" + element + "&key=" + KEY
 
 				response = await axios.get(curr_url)
-				if (response.data === undefined || response.data.length === undefined) {
-					resolve([])
+
+
+
+				if (response.data != undefined && response.data.senses.length != undefined) {
+					response.data.senses.forEach(sense => {
+						console.log("sense", sense)
+						if (sense.properties.language == lang) {
+							set.add(sense.properties.fullLemma)
+						}
+					});
 				}
-				set.add(response.data.senses[0].properties.fullLemma)
+
 				i++;
 				if (i == arr.length) {
+
 					set.forEach(element => {
 						out.push(element)
 					});
+
 					resolve(out)
 				}
+
 			});
 		}).catch((err) => {
+
 			resolve([])
 		})
 	})
@@ -822,7 +882,7 @@ const getRel = (id, lang, limit, string) => {
 		const url = "https://babelnet.io/v6/getOutgoingEdges?id=" + id + "&key=" + KEY
 		axios.get(url).then((result) => {
 
-			nextKey()
+			//nextKey()
 			let set = new Set()
 			let arr = []
 			result.data.forEach(element => {

@@ -160,7 +160,7 @@ const translations = (res, word, lang, langs, sensitive, max) => {
 			axios.get(url0).then((response) => {
 				for (let k = 0; k < search_items.length; k++) {
 					let entity = search_items[k]
-					let trads = { word: search_labels[i], trads: [] }
+					let trads = { word: search_labels[i], trads: [], datas: [] }
 					array_langs.forEach(l => {
 
 						current = response.data.entities[entity].labels[l]
@@ -170,9 +170,11 @@ const translations = (res, word, lang, langs, sensitive, max) => {
 							if (description != undefined) {
 								const trad = new Trad(l, current.value, description.value);
 								trads.trads.push(trad);
+								trads.datas.push(trad)
 							} else {
 								const trad = new Trad(l, current.value);
 								trads.trads.push(trad);
+								trads.datas.push(trad)
 							}
 						}
 					});
@@ -272,8 +274,13 @@ const emotes = (word, lang, limit, sensitive) => {
 
 		axios.get(url).then((response) => {
 			const wikidata_response = response.data;
+			let search_items = []
 
-			const search_items = wikidata_response.search.map((item) => {
+			if (wikidata_response.search === undefined) {
+				resolve([])
+			}
+
+			search_items = wikidata_response.search.map((item) => {
 				return {
 					id: item.id,
 					label: item.label,
@@ -281,6 +288,9 @@ const emotes = (word, lang, limit, sensitive) => {
 
 				}
 			})
+
+
+
 
 			let ids = []
 
@@ -391,12 +401,12 @@ const searchSynonyms = (word, lang, limit) => {
 							});
 							if (syns.length >= limit) {
 								syns.length = limit
-								out.push({ label: search_items[i].label, description: search_items[i].description, synonyms: syns })
+								out.push({ label: search_items[i].label, description: search_items[i].description, synonyms: syns, datas: syns })
 								resolve(out)
 								i = ids.length
 							} else {
 								limit = limit - syns.length
-								out.push({ label: search_items[i].label, description: search_items[i].description, synonyms: syns })
+								out.push({ label: search_items[i].label, description: search_items[i].description, synonyms: syns, datas: syns })
 							}
 						}
 					}
@@ -483,6 +493,8 @@ const searchSubClasses = (word, lang, limit) => {
 
 const relations = (word, lang, limit) => {
 
+
+
 	return new Promise((resolve) => {
 		lang = functions.formatLang2low(lang);
 		const url = wdk.searchEntities({
@@ -536,14 +548,25 @@ const relations = (word, lang, limit) => {
 					let relations = []
 
 					let url3 = ""
+
+					let i = 0
 					properties.forEach(async (element) => {
+						i++
+
 						url3 = wdk.getEntities({
 							ids: [element],
 							languages: [lang],
 							format: "json",
 						})
 						const result = await axios.get(url3)
+
+						if (i == properties.length) {
+
+							resolve(relations)
+						}
+
 						if (limit == 0) {
+
 							set.forEach(element => {
 								relations.push(element)
 							});
@@ -551,20 +574,25 @@ const relations = (word, lang, limit) => {
 							resolve(relations)
 						} else if (limit > 0) {
 
-							set.add(result.data.entities[element].labels[lang].value)
-							limit--
-							if (set.size == properties.length) {
-								set.forEach(element => {
-									relations.push(element)
-								});
-								resolve(relations)
+							if (result.data.entities[element].labels[lang] != undefined) {
+								set.add(result.data.entities[element].labels[lang].value)
+								limit--
+								if (set.size == properties.length) {
+									set.forEach(element => {
+										relations.push(element)
+									});
+
+									resolve(relations)
+								}
 							}
 						}
 
 					});
-
 				})
 			}
+		}).catch((err) => {
+			console.log("err", err)
+			resolve([])
 		})
 
 	})

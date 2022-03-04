@@ -22,6 +22,8 @@
 		"node-fetch": "^3.0.0",
 		"sparql-http-client": "^2.4.0",
 		"sparqljs": "^3.5.1",
+		"swagger-jsdoc": "^6.1.0",
+		"swagger-ui-express": "^4.3.0",
 		"wikibase-sdk": "^7.13.1"
 	}
 }

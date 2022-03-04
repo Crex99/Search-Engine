@@ -139,6 +139,7 @@ const synonyms = async (word, lang, limit) => {
 }
 
 const relations = async (word, lang, limit) => {
+
 	const client = new ParsingClient({ endpointUrl })
 	word = word.toLowerCase()
 	lang = functions.formatLang2low(lang)
@@ -150,9 +151,11 @@ const relations = async (word, lang, limit) => {
 	let set = new Set()
 	let relation = ""
 	return new Promise((resolve) => {
+
 		bindings.forEach(row =>
 			Object.entries(row).forEach(([key, value]) => {
 				relation = (`${key}`)
+
 				//current = (`${value.value}`)
 				//console.log(current)
 				//current = current.split("/")
