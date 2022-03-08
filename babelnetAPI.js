@@ -456,6 +456,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
+									sense.descriptions.length = limit
 									return array
 								} else {
 									limit = limit - sense.datas.length
@@ -478,6 +479,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
+									sense.hierarchy.length = limit
 									return array
 								} else {
 									limit = limit - sense.datas.length
@@ -501,6 +503,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
+									sense.hierarchy.length = limit
 									return array
 								} else {
 									limit = limit - sense.datas.length
@@ -523,6 +526,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
+									sense.hierarchy.length = limit
 									return array
 								} else {
 									limit = limit - sense.datas.length
@@ -549,6 +553,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
+									sense.descriptions.length = limit
 
 									return array
 								} else {
