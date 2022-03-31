@@ -638,13 +638,13 @@ const trads = async (word, id, langs, limit) => {
 			if (element.properties != undefined) {
 				console.log("lang", element.properties.language)
 				if (langs.includes(element.properties.language.toLowerCase())) {
-					const trad = new Trad(element.properties.language, element.properties.fullLemma)
+					const trad = new Trad(element.properties.language, element.properties.fullLemma.split("_").join(" "))
 					addTrad(trad)
 				}
 			} else {
 				element.forEach(el => {
 					if (langs.includes(el.properties.language.toLowerCase())) {
-						const trad = new Trad(el.properties.language, el.properties.fullLemma)
+						const trad = new Trad(el.properties.language, el.properties.fullLemma.split("_").join(" "))
 						addTrad(trad)
 					}
 				});
@@ -866,7 +866,7 @@ const types = (id, lang, limit) => {
 				if (i == arr.length) {
 
 					set.forEach(element => {
-						out.push(element)
+						out.push(element.split("_").join(" "))
 					});
 
 					resolve(out)
