@@ -90,6 +90,10 @@ app.get("/", (req, res) => {
 	 *        limit:
 	 *         type: number
 	 *         required: true
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -120,6 +124,10 @@ app.post("/imgs", (req, res) => controller.imgs(req, res))
 	 *        limit:
 	 *         type: number
 	 *         required: true
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -147,6 +155,10 @@ app.post("/trads", (req, res) => controller.trads(req, res))
 	 *        limit:
 	 *         type: number
 	 *         required: true
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -174,6 +186,10 @@ app.post("/senses", (req, res) => controller.senses(req, res))
 	 *         example: en
 	 *        limit:
 	 *         type: number
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -232,6 +248,10 @@ app.post("/all", (req, res) => controller.all(req, res))
 	 *         required: true
 	 *        limit:
 	 *         type: number
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -259,6 +279,10 @@ app.post("/emoticons", (req, res) => controller.emoticons(req, res))
 	 *         required: true
 	 *        limit:
 	 *         type: number
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -286,6 +310,10 @@ app.post("/synonyms", (req, res) => controller.synonyms(req, res))
 	 *         required: true
 	 *        limit:
 	 *         type: number
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -313,6 +341,10 @@ app.post("/hyponyms", (req, res) => controller.hyponyms(req, res))
 	 *         required: true
 	 *        limit:
 	 *         type: number
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -340,6 +372,10 @@ app.post("/hypernyms", (req, res) => controller.hypernyms(req, res))
 	 *         required: true
 	 *        limit:
 	 *         type: number
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -368,11 +404,48 @@ app.post("/holonyms", (req, res) => controller.holonyms(req, res))
 	 *        limit:
 	 *         type: number
 	 *         required: true
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
 	 */
 app.post("/meronyms", (req, res) => controller.meronyms(req, res))
+
+
+/**
+	 * @swagger
+	 * /similarities:
+	 *  post: 
+	 *   description: returns all the similarities retrieved for the word in input, if the limit isn't specified it is 10 by default
+	 *   requestBody:
+	 *    content:
+	 *     application/x-www-form-urlencoded:
+	 *      schema:
+	 *       type: object
+	 *       properties:
+	 *        word:
+	 *         type: string
+	 *         example: cat
+	 *         required: true
+	 *        lang:
+	 *         type: string
+	 *         example: en
+	 *         required: true
+	 *        limit:
+	 *         type: number
+	 *         required: true
+	 *        FILTER:
+	 *         type: boolean
+	 *         example: true
+	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *   responses:
+	 *    200:
+	 *     description: request accepted, verifiyng input 
+	 */
+app.post("/similarities", (req, res) => controller.similarities(req, res))
 
 
 app.post("/inspiration", (req, res) => controller.inspiration(req, res))

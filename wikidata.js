@@ -331,11 +331,11 @@ const emotes = (word, lang, limit, sensitive) => {
 						});
 						if (symbols.length >= limit) {
 							symbols.length = limit
-							out.push({ word: label, emotes: symbols })
+							out.push({ word: label, datas: symbols })
 							resolve(out)
 						} else {
 							limit = limit - symbols.length
-							out.push({ word: label, emotes: symbols })
+							out.push({ word: label, datas: symbols })
 						}
 
 					}

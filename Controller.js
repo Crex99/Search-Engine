@@ -57,6 +57,13 @@ const inspiration = async (req, res) => {
 
 const imgs = async (req, res) => {
 
+	req.body.FILTER = Boolean(req.body.FILTER)
+
+	if (req.body.FILTER) {
+		req.body.BABELNET = false
+		req.body.WIKIDATA = false
+	}
+
 
 
 	req.body.imgs = true;
@@ -86,6 +93,18 @@ const imgs = async (req, res) => {
 
 		const babelStartTime = performance.now()
 
+		if (req.body.DBPEDIA === undefined || req.body.DBPEDIA) {
+			const dbpStartTime = performance.now()
+			imgs = await dbPediaMethods.images(req.body.word, req.body.lang, req.body.limit);
+			const dbpEndTime = performance.now()
+			const dbpTime = new Number(dbpEndTime - dbpStartTime)
+			response.addData({ source: "DBPEDIA", inf: imgs, time: precise(dbpTime) })
+		}
+
+		if (imgs.length === 0) {
+			req.body.BABELNET = true
+		}
+
 		if (req.body.BABELNET === undefined || req.body.BABELNET) {
 			imgs = await babelMethods.senses({ ...req.body })
 			const babelEndTime = performance.now()
@@ -93,12 +112,34 @@ const imgs = async (req, res) => {
 			response.addData({ source: "BABELNET", inf: imgs, time: precise(babelTime) })
 		}
 
-		if (req.body.DBPEDIA === undefined || req.body.DBPEDIA) {
-			const dbpStartTime = performance.now()
-			imgs = await dbPediaMethods.images(req.body.word, req.body.lang, req.body.limit);
-			const dbpEndTime = performance.now()
-			const dbpTime = new Number(dbpEndTime - dbpStartTime)
-			response.addData({ source: "DBPEDIA", inf: imgs, time: precise(dbpTime) })
+		if (req.body.FILTER) {
+
+			let set = new Set()
+			let arr = []
+
+			response.data.forEach(element => {
+				if (element.source === "DBPEDIA") {
+					element.inf.forEach(element => {
+						set.add(element)
+					});
+				}
+
+				if (element.source === "BABELNET") {
+					element.inf.forEach(element => {
+						element.datas.forEach(element => {
+							set.add(element.url)
+						});
+					});
+				}
+			});
+			set.forEach(element => {
+				arr.push(element)
+			});
+			if (arr.length > req.body.limit) {
+				arr.length = req.body.limit
+			}
+			response.data = arr
+
 		}
 
 		res.send(response)
@@ -108,6 +149,14 @@ const imgs = async (req, res) => {
 }
 
 const trads = async (req, res) => {
+
+	req.body.FILTER = Boolean(req.body.FILTER)
+
+	if (req.body.FILTER) {
+		req.body.CONCEPTNET = false
+		req.body.WIKIDATA = false
+		req.body.DBPEDIA = false
+	}
 
 	let sensitive = true;
 
@@ -126,6 +175,19 @@ const trads = async (req, res) => {
 		let response = new Response(true, "discovered translations")
 
 		let trads = ""
+
+		if (req.body.BABELNET === undefined || req.body.BABELNET) {
+			const babelStartTime = performance.now()
+			trads = await babelMethods.senses({ ...req.body })
+			const babelEndTime = performance.now()
+			const babelTime = new Number(babelEndTime - babelStartTime)
+			response.addData({ source: "BABELNET", inf: trads, time: precise(babelTime) })
+		}
+
+		if (trads === undefined || trads.length === 0) {
+			req.body.WIKIDATA = true
+		}
+
 		if (req.body.WIKIDATA === undefined || req.body.WIKIDATA) {
 			const wikiStartTime = performance.now()
 			trads = await wikiMethods.translations(res, req.body.word, req.body.lang, req.body.langs, sensitive, req.body.limit)
@@ -142,20 +204,39 @@ const trads = async (req, res) => {
 			response.addData({ source: "DBPEDIA", inf: trads, time: precise(dbpTime) })
 		}
 
-		if (req.body.BABELNET === undefined || req.body.BABELNET) {
-			const babelStartTime = performance.now()
-			trads = await babelMethods.senses({ ...req.body })
-			const babelEndTime = performance.now()
-			const babelTime = new Number(babelEndTime - babelStartTime)
-			response.addData({ source: "BABELNET", inf: trads, time: precise(babelTime) })
-		}
-
 		if (req.body.CONCEPTNET === undefined || req.body.CONCEPTNET) {
 			let startTime = performance.now()
 			trads = await conceptMethods.edges(req.body.word, req.body.lang, "trads", req.body.limit, req.body.langs)
 			let endTime = performance.now()
 			let time = new Number(endTime - startTime)
 			response.addData({ source: "CONCEPTNET", inf: trads, time: precise(time) })
+		}
+
+		if (req.body.FILTER) {
+
+			let arr = []
+
+			response.data.forEach(element => {
+				if (element.source === "BABELNET") {
+					element.inf.forEach(element => {
+						element.datas.forEach(element => {
+							arr.push(element)
+						});
+					});
+				}
+				if (element.source === "WIKIDATA") {
+					element.inf.forEach(element => {
+						element.datas.forEach(element => {
+							arr.push(element)
+						});
+					});
+				}
+				if (arr.length > req.body.limit) {
+					arr.length = req.body.limit
+				}
+
+			});
+			response.data = arr
 		}
 
 		res.send(response)
@@ -166,6 +247,13 @@ const trads = async (req, res) => {
 }
 
 const senses = async (req, res) => {
+
+	req.body.FILTER = Boolean(req.body.FILTER)
+
+	/**eliminating useless sources */
+	if (req.body.FILTER) {
+		req.body.BABELNET = false
+	}
 
 	if (req.body.sensitive == undefined) {
 		req.body.sensitive = true
@@ -209,6 +297,28 @@ const senses = async (req, res) => {
 			endTime = performance.now()
 			time = new Number(endTime - startTime)
 			response.addData({ source: "CONCEPTNET", inf: senses, time: precise(time) })
+		}
+
+		/**MASKING RESPONSE */
+		if (req.body.FILTER) {
+			let set = new Set()
+			let arr = []
+			response.data.forEach(element => {
+				if (element.source === "CONCEPTNET") {
+					element.inf.forEach(element => {
+						set.add(element.word)
+					});
+				}
+			});
+
+			set.forEach(element => {
+				arr.push(element)
+			});
+			if (arr.length > req.body.limit) {
+				arr.length = req.body.limit
+			}
+			response.data = arr
+
 		}
 		res.send(response)
 
@@ -282,6 +392,13 @@ const relations = async (req, res) => {
 
 const emoticons = async (req, res) => {
 
+	req.body.FILTER = Boolean(req.body.FILTER)
+
+	if (req.body.FILTER) {
+		req.body.CONCEPTNET = false
+		req.body.WIKIDATA = false
+	}
+
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
 	} else {
@@ -314,6 +431,10 @@ const emoticons = async (req, res) => {
 			response.addData({ source: "BABELNET", inf: emotes, time: precise(babelTime) })
 		}
 
+		if (emotes.length === 0) {
+			req.body.WIKIDATA = true
+		}
+
 		if (req.body.WIKIDATA === undefined || req.body.WIKIDATA) {
 			const wikiStartTime = performance.now()
 			emotes = await wikiMethods.emotes(req.body.word, req.body.lang, req.body.limit, req.body.sensitive)
@@ -322,12 +443,51 @@ const emoticons = async (req, res) => {
 			response.addData({ source: "WIKIDATA", inf: emotes, time: precise(wikiTime) })
 		}
 
+		if (req.body.FILTER) {
+
+			let set = new Set()
+			let arr = []
+
+			response.data.forEach(element => {
+				if (element.source === "BABELNET") {
+					element.inf.forEach(element => {
+						element.datas.forEach(element => {
+							set.add(element)
+						});
+					});
+				}
+				if (element.source === "WIKIDATA") {
+					element.inf.forEach(element => {
+						element.datas.forEach(element => {
+							set.add(element)
+						});
+					});
+				}
+			});
+
+			set.forEach(element => {
+				arr.push(element)
+			});
+			if (arr.length > req.body.limit) {
+				arr.length = req.body.limit
+			}
+			response.data = arr
+		}
+
 		res.send(response)
 	}
 
 }
 
 const synonyms = async (req, res) => {
+
+	req.body.FILTER = Boolean(req.body.FILTER)
+	if (req.body.FILTER) {
+		req.body.CONCEPTNET = false
+		req.body.BABELNET = false
+		req.body.DBPEDIA = false
+		req.body.DBNARY = false
+	}
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
 	} else {
@@ -343,10 +503,23 @@ const synonyms = async (req, res) => {
 
 		if (req.body.CONCEPTNET === undefined || req.body.CONCEPTNET) {
 			let startTime = performance.now()
-			syns = await conceptMethods.edges(req.body.word, req.body.lang, "Synonym", req.body.limit)
+			syns = await conceptMethods.edges(req.body.word, req.body.lang, "Isa", req.body.limit)
 			let endTime = performance.now()
 			let time = new Number(endTime - startTime)
 			response.addData({ source: "CONCEPTNET", inf: syns, time: precise(time) })
+		}
+
+
+		if (req.body.WIKIDATA === undefined || req.body.WIKIDATA) {
+			const wikiStartTime = performance.now()
+			syns = await wikiMethods.searchSynonyms(req.body.word, req.body.lang, req.body.limit)
+			const wikiEndTime = performance.now()
+			const wikiTime = new Number(wikiEndTime - wikiStartTime)
+			response.addData({ source: "WIKIDATA", inf: syns, time: precise(wikiTime) })
+		}
+
+		if (syns === undefined || syns.length === 0) {
+			req.body.BABELNET = true
 		}
 
 		const babelStartTime = performance.now()
@@ -356,14 +529,6 @@ const synonyms = async (req, res) => {
 			const babelEndTime = performance.now()
 			const babelTime = new Number(babelEndTime - babelStartTime)
 			response.addData({ source: "BABELNET", inf: syns, time: precise(babelTime) })
-		}
-
-		if (req.body.WIKIDATA === undefined || req.body.WIKIDATA) {
-			const wikiStartTime = performance.now()
-			syns = await wikiMethods.searchSynonyms(req.body.word, req.body.lang, req.body.limit)
-			const wikiEndTime = performance.now()
-			const wikiTime = new Number(wikiEndTime - wikiStartTime)
-			response.addData({ source: "WIKIDATA", inf: syns, time: precise(wikiTime) })
 		}
 
 		if (req.body.DBPEDIA === undefined || req.body.DBPEDIA) {
@@ -382,11 +547,46 @@ const synonyms = async (req, res) => {
 			response.addData({ source: "DBNARY", inf: syns, time: precise(dbnTime) })
 		}
 
+		if (req.body.FILTER) {
+
+			let set = new Set()
+			let arr = []
+
+			response.data.forEach(element => {
+				if (element.source === "BABELNET") {
+					element.inf.forEach(element => {
+						element.datas.forEach(element => {
+							set.add(element)
+						});
+					});
+				}
+
+				if (element.source === "WIKIDATA") {
+					element.inf.forEach(element => {
+						element.datas.forEach(element => {
+							set.add(element)
+						});
+					});
+				}
+			});
+			set.forEach(element => {
+				arr.push(element)
+			});
+			if (arr.length > req.body.limit) {
+				arr.length = req.body.limit
+			}
+
+			response.data = arr
+		}
+
 		res.send(response)
 	}
 }
 
 const hyponyms = async (req, res) => {
+
+	req.body.FILTER = Boolean(req.body.FILTER)
+
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
 	}
@@ -419,9 +619,43 @@ const hyponyms = async (req, res) => {
 		response.addData({ source: "DBNARY", inf: result, time: precise(time) })
 	}
 
+	if (req.body.FILTER) {
+
+		let set = new Set()
+		let arr = []
+
+		response.data.forEach(element => {
+			if (element.source === "BABELNET") {
+				element.inf.forEach(element => {
+					element.datas.forEach(element => {
+						set.add(element)
+					});
+				});
+			}
+
+			if (element.source === "DBNARY") {
+				element.inf.forEach(element => {
+
+					set.add(element)
+
+				});
+			}
+		});
+		set.forEach(element => {
+			arr.push(element)
+		});
+		if (arr.length > req.body.limit) {
+			arr.length = req.body.limit
+		}
+		response.data = arr
+	}
+
 	res.send(response)
 }
 const hypernyms = async (req, res) => {
+
+	req.body.FILTER = Boolean(req.body.FILTER)
+
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
 	}
@@ -473,10 +707,67 @@ const hypernyms = async (req, res) => {
 		response.addData({ source: "DBNARY", inf: result, time: precise(time) })
 	}
 
+	if (req.body.FILTER) {
+
+		let set = new Set()
+		let arr = []
+
+		response.data.forEach(element => {
+			if (element.source === "BABELNET") {
+				element.inf.forEach(element => {
+					element.datas.forEach(element => {
+						set.add(element)
+					});
+				});
+			}
+
+			if (element.source === "WIKIDATA") {
+				element.inf.forEach(element => {
+
+					set.add(element)
+
+				});
+			}
+
+			if (element.source === "DBPEDIA") {
+				element.inf.forEach(element => {
+
+					set.add(element)
+
+				});
+			}
+
+			if (element.source === "DBNARY") {
+				element.inf.forEach(element => {
+
+					set.add(element)
+
+				});
+			}
+		});
+
+		set.forEach(element => {
+			arr.push(element)
+		});
+		if (arr.length > req.body.limit) {
+			arr.length = req.body.limit
+		}
+		response.data = arr
+	}
+
 	res.send(response)
 }
 
 const meronyms = async (req, res) => {
+
+	req.body.FILTER = Boolean(req.body.FILTER)
+
+	if (req.body.FILTER) {
+		req.body.DBNARY = false
+		req.body.CONCEPTNET = false
+	}
+
+
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
 	}
@@ -501,6 +792,10 @@ const meronyms = async (req, res) => {
 		response.addData({ source: "BABELNET", inf: result, time: precise(time) })
 	}
 
+	if (result === undefined || result.length === 0) {
+		req.body.CONCEPTNET = true
+	}
+
 
 	if (req.body.DBNARY === undefined || req.body.DBNARY) {
 		startTime = performance.now()
@@ -519,9 +814,47 @@ const meronyms = async (req, res) => {
 		response.addData({ source: "CONCEPTNET", inf: result, time: precise(time) })
 	}
 
+	if (req.body.FILTER) {
+
+		let set = new Set()
+		let arr = []
+
+		response.data.forEach(element => {
+			if (element.source === "BABELNET") {
+				element.inf.forEach(element => {
+					element.datas.forEach(element => {
+						set.add(element)
+					});
+				});
+			}
+
+			if (element.source === "CONCEPTNET") {
+				element.inf.forEach(element => {
+
+					set.add(element.word)
+
+				});
+			}
+		});
+		set.forEach(element => {
+			arr.push(element)
+		});
+		if (arr.length > req.body.limit) {
+			arr.length = req.body.limit
+		}
+		response.data = arr
+	}
+
 	res.send(response)
 }
 const holonyms = async (req, res) => {
+
+	req.body.FILTER = Boolean(req.body.FILTER)
+
+	if (req.body.FILTER) {
+		req.body.DBNARY = false
+		req.body.CONCEPTNET = false
+	}
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
 	}
@@ -563,10 +896,44 @@ const holonyms = async (req, res) => {
 		response.addData({ source: "CONCEPTNET", inf: result, time: precise(time) })
 	}
 
+	if (req.body.FILTER) {
+
+		let set = new Set()
+		let arr = []
+
+		response.data.forEach(element => {
+			if (element.source === "BABELNET") {
+				element.inf.forEach(element => {
+					element.datas.forEach(element => {
+						set.add(element)
+					});
+				});
+			}
+		});
+
+		set.forEach(element => {
+			arr.push(element)
+		});
+		if (arr.length > req.body.limit) {
+			arr.length = req.body.limit
+		}
+		response.data = arr
+	}
+
 	res.send(response)
 }
 
 const descriptions = async (req, res) => {
+
+	req.body.FILTER = Boolean(req.body.FILTER)
+
+
+	if (req.body.FILTER) {
+		req.body.CONCEPTNET = false
+		req.body.WIKIDATA = false
+		req.body.DBPEDIA = false
+		req.body.DBNARY = false
+	}
 
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
@@ -589,6 +956,13 @@ const descriptions = async (req, res) => {
 		endTime = performance.now()
 		time = new Number(endTime - startTime)
 		response.addData({ source: "BABELNET", inf: result, time: precise(time) })
+	}
+
+	if (result.length === 0) {
+		req.body.CONCEPTNET = true
+		req.body.WIKIDATA = true
+		req.body.DBPEDIA = true
+		req.body.DBNARY = true
 	}
 
 
@@ -624,8 +998,52 @@ const descriptions = async (req, res) => {
 		response.addData({ source: "DBNARY", inf: result, time: precise(time) })
 	}
 
+	if (req.body.FILTER) {
+
+		let set = new Set()
+		let arr = []
+
+		response.data.forEach(element => {
+
+			if (element.source === "BABELNET") {
+				element.inf.forEach(element => {
+					element.datas.forEach(element => {
+						set.add(element)
+					});
+				});
+			}
+
+			if (element.source === "CONCEPTNET") {
+				element.inf.forEach(element => {
+					set.add(element.word)
+				});
+			}
+
+			if (element.source === "DBPEDIA") {
+				set.add(element.inf)
+			}
+
+			if (element.source === "DBPEDIA") {
+				element.inf.forEach(element => {
+					set.add(element)
+				});
+			}
+
+		});
+		set.forEach(element => {
+			arr.push(element)
+		});
+		if (arr.length > req.body.limit) {
+			arr.length = req.body.limit
+		}
+		response.data = arr
+
+	}
+
 	res.send(response)
 }
+
+
 const hasPart = async (req, res) => {
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
@@ -718,6 +1136,59 @@ const isA = async (req, res) => {
 	response.addData({ source: "BABELNET", inf: result, time: precise(time) })
 	res.send(response)
 }
+
+const similarities = async (req, res) => {
+
+	req.body.FILTER = Boolean(req.body.FILTER)
+
+	if (req.body.word == undefined || req.body.lang == undefined) {
+		res.send(new Response(false, "paramethers not valids"))
+	} else {
+		req.body.synonyms = true
+		if (req.body.limit == undefined || req.body.limit == "" || isNaN(req.body.limit)) {
+			req.body.limit = DEFAULT_LIMIT
+		}
+
+		req.body.langs = undefined
+
+		let syns = "";
+		let response = new Response(true, "retrieved similarities")
+
+		if (req.body.CONCEPTNET === undefined || req.body.CONCEPTNET) {
+			let startTime = performance.now()
+			syns = await conceptMethods.edges(req.body.word, req.body.lang, "Synonym", req.body.limit)
+			let endTime = performance.now()
+			let time = new Number(endTime - startTime)
+			response.addData({ source: "CONCEPTNET", inf: syns, time: precise(time) })
+		}
+
+
+		if (req.body.FILTER) {
+
+			let set = new Set()
+			let arr = []
+
+			response.data.forEach(element => {
+				if (element.source === "CONCEPTNET") {
+					element.inf.forEach(element => {
+						set.add(element.word)
+					});
+				}
+			});
+			set.forEach(element => {
+				arr.push(element)
+			});
+			if (arr.length > req.body.limit) {
+				arr.length = req.body.limit
+			}
+
+			response.data = arr
+		}
+
+		res.send(response)
+	}
+
+}
 module.exports = {
 	inspiration: inspiration,
 	senses: senses,
@@ -733,5 +1204,6 @@ module.exports = {
 	holonyms: holonyms,
 	hasPart: hasPart,
 	partOf: partOf,
+	similarities: similarities,
 	isA: isA
 }
