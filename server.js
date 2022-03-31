@@ -93,7 +93,7 @@ app.get("/", (req, res) => {
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -127,7 +127,7 @@ app.post("/imgs", (req, res) => controller.imgs(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -158,7 +158,7 @@ app.post("/trads", (req, res) => controller.trads(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -189,7 +189,7 @@ app.post("/senses", (req, res) => controller.senses(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -251,7 +251,7 @@ app.post("/all", (req, res) => controller.all(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -282,7 +282,7 @@ app.post("/emoticons", (req, res) => controller.emoticons(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -313,7 +313,7 @@ app.post("/synonyms", (req, res) => controller.synonyms(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -344,7 +344,7 @@ app.post("/hyponyms", (req, res) => controller.hyponyms(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -375,7 +375,7 @@ app.post("/hypernyms", (req, res) => controller.hypernyms(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -407,7 +407,7 @@ app.post("/holonyms", (req, res) => controller.holonyms(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
@@ -440,7 +440,7 @@ app.post("/meronyms", (req, res) => controller.meronyms(req, res))
 	 *        FILTER:
 	 *         type: boolean
 	 *         example: true
-	 *         description: questo parametro se messo a false permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
+	 *         description: questo parametro opzionale se non impostato o impostato a false  permette di vedere tutte le fonti che possono fornire il servizio richiesto, se invece è impostato a true la risposta sarà più semplice e corta, ma non si conosceranno le fonti chiamate
 	 *   responses:
 	 *    200:
 	 *     description: request accepted, verifiyng input 
