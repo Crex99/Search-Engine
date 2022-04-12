@@ -186,6 +186,7 @@ const trads = async (req, res) => {
 
 		if (trads === undefined || trads.length === 0) {
 			req.body.WIKIDATA = true
+			req.body.DBPEDIA = true
 		}
 
 		if (req.body.WIKIDATA === undefined || req.body.WIKIDATA) {
@@ -395,8 +396,8 @@ const emoticons = async (req, res) => {
 	req.body.FILTER = Boolean(req.body.FILTER)
 
 	if (req.body.FILTER) {
+		req.body.BABELNET = false
 		req.body.CONCEPTNET = false
-		req.body.WIKIDATA = false
 	}
 
 	if (req.body.word == undefined || req.body.lang == undefined) {
@@ -421,6 +422,18 @@ const emoticons = async (req, res) => {
 			response.addData({ source: "CONCEPTNET", inf: emotes, time: precise(time) })
 		}
 
+		if (req.body.WIKIDATA === undefined || req.body.WIKIDATA) {
+			const wikiStartTime = performance.now()
+			emotes = await wikiMethods.emotes(req.body.word, req.body.lang, req.body.limit, req.body.sensitive)
+			const wikiEndTime = performance.now()
+			const wikiTime = new Number(wikiEndTime - wikiStartTime)
+			response.addData({ source: "WIKIDATA", inf: emotes, time: precise(wikiTime) })
+		}
+
+		if (emotes.length === 0) {
+			req.body.BABELNET = true
+		}
+
 
 
 		if (req.body.BABELNET === undefined || req.body.BABELNET) {
@@ -429,18 +442,6 @@ const emoticons = async (req, res) => {
 			const babelEndTime = performance.now()
 			const babelTime = new Number(babelEndTime - babelStartTime)
 			response.addData({ source: "BABELNET", inf: emotes, time: precise(babelTime) })
-		}
-
-		if (emotes.length === 0) {
-			req.body.WIKIDATA = true
-		}
-
-		if (req.body.WIKIDATA === undefined || req.body.WIKIDATA) {
-			const wikiStartTime = performance.now()
-			emotes = await wikiMethods.emotes(req.body.word, req.body.lang, req.body.limit, req.body.sensitive)
-			const wikiEndTime = performance.now()
-			const wikiTime = new Number(wikiEndTime - wikiStartTime)
-			response.addData({ source: "WIKIDATA", inf: emotes, time: precise(wikiTime) })
 		}
 
 		if (req.body.FILTER) {
@@ -959,10 +960,8 @@ const descriptions = async (req, res) => {
 	}
 
 	if (result.length === 0) {
-		req.body.CONCEPTNET = true
 		req.body.WIKIDATA = true
 		req.body.DBPEDIA = true
-		req.body.DBNARY = true
 	}
 
 
