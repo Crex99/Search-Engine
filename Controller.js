@@ -57,7 +57,26 @@ const inspiration = async (req, res) => {
 
 const imgs = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 	if (req.body.FILTER) {
 		req.body.BABELNET = false
@@ -150,7 +169,26 @@ const imgs = async (req, res) => {
 
 const trads = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 	if (req.body.FILTER) {
 		req.body.CONCEPTNET = false
@@ -249,7 +287,26 @@ const trads = async (req, res) => {
 
 const senses = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 	/**eliminating useless sources */
 	if (req.body.FILTER) {
@@ -393,7 +450,26 @@ const relations = async (req, res) => {
 
 const emoticons = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 	if (req.body.FILTER) {
 		req.body.BABELNET = false
@@ -482,7 +558,26 @@ const emoticons = async (req, res) => {
 
 const synonyms = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 	if (req.body.FILTER) {
 		req.body.CONCEPTNET = false
 		req.body.BABELNET = false
@@ -586,7 +681,26 @@ const synonyms = async (req, res) => {
 
 const hyponyms = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
@@ -655,7 +769,26 @@ const hyponyms = async (req, res) => {
 }
 const hypernyms = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
@@ -761,7 +894,26 @@ const hypernyms = async (req, res) => {
 
 const meronyms = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 	if (req.body.FILTER) {
 		req.body.DBNARY = false
@@ -850,7 +1002,26 @@ const meronyms = async (req, res) => {
 }
 const holonyms = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 	if (req.body.FILTER) {
 		req.body.DBNARY = false
@@ -926,7 +1097,26 @@ const holonyms = async (req, res) => {
 
 const descriptions = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 
 	if (req.body.FILTER) {
@@ -1138,7 +1328,26 @@ const isA = async (req, res) => {
 
 const similarities = async (req, res) => {
 
-	req.body.FILTER = Boolean(req.body.FILTER)
+	switch (req.body.FILTER) {
+		case "true":
+			console.log("stringaTrue")
+			req.body.FILTER = true
+			break;
+		case "false":
+			console.log("stringaFalse")
+			req.body.FILTER = false
+			break;
+		case true:
+			console.log("BooleanoTrue")
+			break;
+		case false:
+			console.log("BooleanoFalse")
+			break;
+		default:
+			console.log("default")
+			req.body.FILTER = false
+			break;
+	}
 
 	if (req.body.word == undefined || req.body.lang == undefined) {
 		res.send(new Response(false, "paramethers not valids"))
