@@ -160,7 +160,7 @@ const translations = (res, word, lang, langs, sensitive, max) => {
 			axios.get(url0).then((response) => {
 				for (let k = 0; k < search_items.length; k++) {
 					let entity = search_items[k]
-					let trads = { word: search_labels[i], trads: [], datas: [] }
+					let trads = { word: search_labels[i], datas: [] }
 					array_langs.forEach(l => {
 
 						current = response.data.entities[entity].labels[l]
@@ -169,22 +169,22 @@ const translations = (res, word, lang, langs, sensitive, max) => {
 
 							if (description != undefined) {
 								const trad = new Trad(l, current.value, description.value);
-								trads.trads.push(trad);
+								//trads.trads.push(trad);
 								trads.datas.push(trad)
 							} else {
 								const trad = new Trad(l, current.value);
-								trads.trads.push(trad);
+								//trads.trads.push(trad);
 								trads.datas.push(trad)
 							}
 						}
 					});
-					if (trads.trads.length >= max) {
-						trads.trads.length = max
+					if (trads.datas.length >= max) {
+						trads.datas.length = max
 						out.push(trads)
 						k = search_items.length
 						resolve(out)
 					} else {
-						max = max - trads.trads.length;
+						max = max - trads.datas.length;
 						out.push(trads)
 					}
 					i++;
@@ -401,12 +401,12 @@ const searchSynonyms = (word, lang, limit) => {
 							});
 							if (syns.length >= limit) {
 								syns.length = limit
-								out.push({ label: search_items[i].label, description: search_items[i].description, synonyms: syns, datas: syns })
+								out.push({ label: search_items[i].label, description: search_items[i].description, datas: syns })
 								resolve(out)
 								i = ids.length
 							} else {
 								limit = limit - syns.length
-								out.push({ label: search_items[i].label, description: search_items[i].description, synonyms: syns, datas: syns })
+								out.push({ label: search_items[i].label, description: search_items[i].description, datas: syns })
 							}
 						}
 					}
