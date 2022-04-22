@@ -244,7 +244,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 							if (final.length >= limit) {
 								final.length = limit
-								sense.addSynonyms(final)
+								//sense.addSynonyms(final)
 								sense.setResults(final)
 								for (let k = 0; k < array.length; k++) {
 									if (array[k].name === sense.name) {
@@ -254,7 +254,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								return array
 							} else if (final.length > 0) {
 								limit = limit - final.length
-								sense.addSynonyms(final)
+								//sense.addSynonyms(final)
 								sense.setResults(final)
 								for (let k = 0; k < array.length; k++) {
 									if (array[k].name === sense.name) {
@@ -275,14 +275,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 								if (final.length >= limit) {
 									final.length = limit
-									sense.setRelations(final)
+									//sense.setRelations(final)
 									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
-									sense.setRelations(final)
+									//sense.setRelations(final)
 									sense.setResults(final)
 									array.push(sense)
 								}
@@ -296,14 +296,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 								if (final.length >= limit) {
 									final.length = limit
-									sense.images = final
+									//sense.images = final
 									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
-									sense.images = final
+									//sense.images = final
 									sense.setResults(final)
 									array.push(sense)
 								}
@@ -336,13 +336,13 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 								if (arr.length >= limit) {
 									arr.length = limit
-									sense.trads = arr
+									//sense.trads = arr
 									sense.setResults(arr)
 									array.push(sense)
 
 									return array
 								} else if (arr.length > 0) {
-									sense.trads = arr
+									//sense.trads = arr
 									sense.setResults(arr)
 									array.push(sense)
 									limit = limit - arr.length
@@ -356,14 +356,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								const final = await emotes(out[i].properties.synsetID.id, lang)
 								if (final.length >= limit) {
 									final.length = limit
-									sense.emotes = final
+									//sense.emotes = final
 									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
-									sense.emotes = final
+									//sense.emotes = final
 									sense.setResults(final)
 									array.push(sense)
 								}
@@ -375,14 +375,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 								if (final.length >= limit) {
 									final.length = limit
-									sense.hierarchy = final
+									//sense.hierarchy = final
 									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
-									sense.hierarchy = final
+									//sense.hierarchy = final
 									sense.setResults(final)
 									array.push(sense)
 								}
@@ -393,14 +393,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 								if (final.length >= limit) {
 									final.length = limit
-									sense.hierarchy = final
+									//sense.hierarchy = final
 									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
-									sense.hierarchy = final
+									//sense.hierarchy = final
 									sense.setResults(final)
 									array.push(sense)
 								}
@@ -411,14 +411,14 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 								if (final.length >= limit) {
 									final.length = limit
-									sense.hierarchy = final
+									//sense.hierarchy = final
 									sense.setResults(final)
 									array.push(sense)
 
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
-									sense.hierarchy = final
+									//sense.hierarchy = final
 									sense.setResults(final)
 									array.push(sense)
 								}
@@ -429,13 +429,13 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 								if (final.length >= limit) {
 									final.length = limit
-									sense.hierarchy = final
+									//sense.hierarchy = final
 									sense.setResults(final)
 									array.push(sense)
 									return array
 								} else if (final.length > 0) {
 									limit = limit - final.length
-									sense.hierarchy = final
+									//sense.hierarchy = final
 									sense.setResults(final)
 									array.push(sense)
 								}
@@ -445,7 +445,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								const final = await getDescriptions(out[i].properties.synsetID.id, lang, limit);
 
 								final.forEach(element => {
-									sense.addDescription(element)
+									//sense.addDescription(element)
 									sense.addResults(element)
 								});
 								if (final.length > 0) {
@@ -456,7 +456,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
-									sense.descriptions.length = limit
+									//sense.descriptions.length = limit
 									return array
 								} else {
 									limit = limit - sense.datas.length
@@ -464,11 +464,8 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 							} else if (hasPart == true) {
 								const sense = new Sense(out[i].properties.fullLemma)
 								const final = await getRel(out[i].properties.synsetID.id, lang, limit, "has-part");
-								if (sense.hierarchy == "") {
-									sense.hierarchy = []
-								}
 								final.forEach(element => {
-									sense.hierarchy.push(element)
+									//sense.hierarchy.push(element)
 									sense.addResults(element)
 								});
 								if (final.length > 0) {
@@ -479,7 +476,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
-									sense.hierarchy.length = limit
+									//sense.hierarchy.length = limit
 									return array
 								} else {
 									limit = limit - sense.datas.length
@@ -492,7 +489,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 									sense.hierarchy = []
 								}
 								final.forEach(element => {
-									sense.hierarchy.push(element)
+									//sense.hierarchy.push(element)
 									sense.addResults(element)
 								});
 								if (final.length > 0) {
@@ -503,7 +500,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
-									sense.hierarchy.length = limit
+									//sense.hierarchy.length = limit
 									return array
 								} else {
 									limit = limit - sense.datas.length
@@ -511,11 +508,9 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 							} else if (isA == true) {
 								const sense = new Sense(out[i].properties.fullLemma)
 								const final = await getRel(out[i].properties.synsetID.id, lang, limit, "is-a");
-								if (sense.hierarchy == "") {
-									sense.hierarchy = []
-								}
+
 								final.forEach(element => {
-									sense.hierarchy.push(element)
+									//sense.hierarchy.push(element)
 									sense.addResults(element)
 								});
 								if (final.length > 0) {
@@ -526,7 +521,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
-									sense.hierarchy.length = limit
+									//sense.hierarchy.length = limit
 									return array
 								} else {
 									limit = limit - sense.datas.length
@@ -542,7 +537,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 								console.log("final", final)
 
 								final.forEach(element => {
-									sense.addDescription(element)
+									//sense.addDescription(element)
 									sense.addResults(element)
 								});
 								if (final.length > 0) {
@@ -553,7 +548,7 @@ const senses = async ({ word, lang, sensitive, limit, pos, relations, synonyms, 
 
 
 									sense.datas.length = limit
-									sense.descriptions.length = limit
+									//sense.descriptions.length = limit
 
 									return array
 								} else {
